@@ -8,15 +8,26 @@ library(tidyverse)
 
 rm(list = ls())
 
-##  ----  LOAD DATA   ----    ##
+##  ----  LOAD AND CHECK DATA   ----    ##
 
-det <- Occupancy_All_MGS_Data
+detNA <- readRDS("./Data/detection_withNAs_05112024.Rds")
+
 cams <- Occupancy_Operational_Camera_Days_All_MGS_Data
+
+# Remove white space
+
+cams <- cams %>%
+  select(where(~!all(is.na(.))))
+
+
+detNA <- detNA %>% # data in which NA's are already subbed
+  select(where(~!all(is.na(.)))) 
+
 
 # save as R objects
 
-saveRDS(det, file = './Data/detections.Rds')
-saveRDS(cams, file = './Data/camera_operation.Rds')
+#saveRDS(det, file = './Data/detections.Rds')
+#saveRDS(cams, file = './Data/camera_operation.Rds')
 
 
 rm(Occupancy_All_MGS_Data)
@@ -51,9 +62,58 @@ detNA <- det %>%
     ifelse(cams[[col_name]] == 0, NA, x)
   }))
 
-saveRDS(detNA, file = './Data/detection_withNAs.Rds')
+#saveRDS(detNA, file = './Data/detection_withNAs_05112024.Rds')
 
 # Tabulate 0's, 1's, NA's
+
+detNA %>%
+  select(-1) %>%
+  pivot_longer(everything()) %>%
+  count(value) %>%
+  arrange(value)
+
+###   --    FORMAT FOR UMF  --  ##
+
+# Get dates
+
+names(detNA)[-1] <- paste0(names(detNA)[-1], "/2024") # add year to column names
+
+dates <- colnames(detNA)[-1]
+dates <- mdy(dates)
+julianDates <- julian(dates) # origin = 1970-01-01
+
+
+##  --- CREATE UMF OBJECT   --- ##
+
+# First create y (observations)
+
+y <- as.matrix(detNA[,c(2:ncol(detNA))])
+
+# Create obsCovs as a list
+
+obsCovs <- list(
+  julian = matrix(julianDates, 
+                  nrow = nrow(y), 
+                  ncol = ncol(y), 
+                  byrow = TRUE)
+)
+
+# Create siteCovs
+siteCovs <- detNA$Camera_Name
+
+
+# unmarkedFrameOccu call
+
+umf <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = data.frame(site = siteCovs),
+  obsCovs = obsCovs
+)
+
+saveRDS(umf, file = "./Data/umf_05112025.Rds")
+
+
+
 
 
 

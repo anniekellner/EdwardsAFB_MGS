@@ -53,3 +53,13 @@ tabCams <- cams %>%
 
 ```
 
+```{r formatting}
+
+dates <- colnames(detNA)[3:ncol(detNA)]
+dates <- 
+
+
+
+
+```
+
