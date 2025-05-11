@@ -1,0 +1,36 @@
+---
+title: "MGS_Occupancy"
+author: "Annie Kellner"
+date: "2025-04-30"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r libraries}
+
+library(tidyverse)
+library(unmarked)
+
+
+
+
+```
+
+
+
+## LOAD DATA
+
+```{r}
+
+det <- MGS_Occupancy_Detections; rm(MGS_Occupancy_Detections)
+cams <- Occupancy_Operational_Camera_Days_FINAL; rm(Occupancy_Operational_Camera_Days_FINAL)
+
+glimpse(det)
+glimpse(cams)
+
+```
+
