@@ -14,23 +14,42 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(tidyverse)
 library(unmarked)
-
-
-
+library(kableExtra)
 
 ```
 
 
+### Tabulating data
 
-## LOAD DATA
+
+```{r load-data}
+
+detNA <- readRDS("./Data/detection_withNAs.Rds") # detections with NA's subbed for non-operational camera days
+cams <- readRDS("./Data/camera_operation.Rds")
+
+# Tabulate 0's, 1's, NA's
+
+tabData <- detNA %>%
+  select(-1) %>%
+  pivot_longer(everything()) %>%
+  count(value) %>%
+  arrange(value) 
+
+kableExtra::kbl(tabData) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                            position = "center") %>%
+  kableExtra::row_spec(0, bold = TRUE)  # Makes header row bold
+
+```
+
 
 ```{r}
 
-det <- MGS_Occupancy_Detections; rm(MGS_Occupancy_Detections)
-cams <- Occupancy_Operational_Camera_Days_FINAL; rm(Occupancy_Operational_Camera_Days_FINAL)
-
-glimpse(det)
-glimpse(cams)
+tabCams <- cams %>%
+  select(-1) %>%
+  pivot_longer(everything()) %>%
+  count(value) %>%
+  arrange(value) 
 
 ```
 

@@ -51,6 +51,8 @@ detNA <- det %>%
     ifelse(cams[[col_name]] == 0, NA, x)
   }))
 
+saveRDS(detNA, file = './Data/detection_withNAs.Rds')
+
 # Tabulate 0's, 1's, NA's
 
 
