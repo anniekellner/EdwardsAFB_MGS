@@ -89,7 +89,7 @@ ordinal2 <- ordinal^2
 # Scale both to eliminate collinearity
 
 scOrdinal <- scale(ordinal)
-scOrdinal2 <- scale(ordinal2)
+
 
 
 ##  --- CREATE UMF OBJECT   --- ##
@@ -102,11 +102,11 @@ y <- as.matrix(detNA[,c(2:ncol(detNA))]) # 0/1 observations
 
 
 obsCovs <- list(
-  ordinal = matrix(scOrdinal, 
+  scOrdinal = matrix(scOrdinal, 
                   nrow = nrow(y), 
                   ncol = ncol(y), 
                   byrow = TRUE),
-  ordinal2 = matrix(scOrdinal2, 
+  scOrdinal2 = matrix(scOrdinal^2, 
                     nrow = nrow(y),
                     ncol = ncol(y),
                     byrow = TRUE))
