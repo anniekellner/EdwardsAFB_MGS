@@ -70,15 +70,26 @@ detNA %>%
   count(value) %>%
   arrange(value)
 
-###   --    FORMAT FOR UMF  --  ##
+###   --    COVARIATES  --  ##
 
-# Get dates
+# Observation Covariates (obsCovs)
 
 names(detNA)[-1] <- paste0(names(detNA)[-1], "/2024") # add year to column names
 
 dates <- colnames(detNA)[-1]
 dates <- mdy(dates)
-ordinal <- yday(dates) 
+
+# Ordinal Dates
+ordinal <- yday(dates)
+
+# Quadratic Term
+
+ordinal2 <- ordinal^2
+
+# Scale both to eliminate collinearity
+
+scOrdinal <- scale(ordinal)
+scOrdinal2 <- scale(ordinal2)
 
 
 ##  --- CREATE UMF OBJECT   --- ##
@@ -87,21 +98,15 @@ ordinal <- yday(dates)
 
 # First create y (observations)
 
-y <- as.matrix(detNA[,c(2:ncol(detNA))])
-
-
-## Observation Covariates (obsCovs)
-  # ordinal date
-  # ordinal date squared (quadratic form)
-
+y <- as.matrix(detNA[,c(2:ncol(detNA))]) # 0/1 observations
 
 
 obsCovs <- list(
-  ordinal = matrix(ordinal, 
+  ordinal = matrix(scOrdinal, 
                   nrow = nrow(y), 
                   ncol = ncol(y), 
                   byrow = TRUE),
-  ordinal2 = matrix(ordinal^2, 
+  ordinal2 = matrix(scOrdinal2, 
                     nrow = nrow(y),
                     ncol = ncol(y),
                     byrow = TRUE))
@@ -119,7 +124,7 @@ umf <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-saveRDS(umf, file = "./Data/umf_05142025.Rds")
+#saveRDS(umf, file = "./Data/umf_05152025.Rds")
 
 
 
