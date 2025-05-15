@@ -36,11 +36,9 @@ rm(Occupancy_Operational_Camera_Days_All_MGS_Data)
 # checking to see whether camera names are identical. They are.
 
 setdiff(cams$Camera_Name, det$Camera_Name)  
-
-# Check if they're identical
 all.equal(det$Camera_Name, cams$Camera_Name) # TRUE
 
-# If you need to sort them to ensure same order
+# If sorting needed to ensure same order
 det2 <- det %>% 
   arrange(Camera_Name)
 
@@ -80,25 +78,36 @@ names(detNA)[-1] <- paste0(names(detNA)[-1], "/2024") # add year to column names
 
 dates <- colnames(detNA)[-1]
 dates <- mdy(dates)
-julianDates <- julian(dates) # origin = 1970-01-01
+ordinal <- yday(dates) 
 
 
 ##  --- CREATE UMF OBJECT   --- ##
+
+## y = 0/1 observations
 
 # First create y (observations)
 
 y <- as.matrix(detNA[,c(2:ncol(detNA))])
 
-# Create obsCovs as a list
+
+## Observation Covariates (obsCovs)
+  # ordinal date
+  # ordinal date squared (quadratic form)
+
+
 
 obsCovs <- list(
-  julian = matrix(julianDates, 
+  ordinal = matrix(ordinal, 
                   nrow = nrow(y), 
                   ncol = ncol(y), 
-                  byrow = TRUE)
-)
+                  byrow = TRUE),
+  ordinal2 = matrix(ordinal^2, 
+                    nrow = nrow(y),
+                    ncol = ncol(y),
+                    byrow = TRUE))
 
 # Create siteCovs
+
 siteCovs <- detNA$Camera_Name
 
 
@@ -110,7 +119,7 @@ umf <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-saveRDS(umf, file = "./Data/umf_05112025.Rds")
+saveRDS(umf, file = "./Data/umf_05142025.Rds")
 
 
 
