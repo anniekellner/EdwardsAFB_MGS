@@ -51,15 +51,12 @@ tabCams <- cams %>%
   count(value) %>%
   arrange(value) 
 
-```
-
-```{r formatting}
-
-dates <- colnames(detNA)[3:ncol(detNA)]
-dates <- 
-
-
-
+kableExtra::kbl(tabCams) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                            position = "center") %>%
+  kableExtra::row_spec(0, bold = TRUE)  # Makes header row bold
 
 ```
+
+
 
