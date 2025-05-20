@@ -114,4 +114,152 @@ This model is too simplistic because it does not account for any spatiotemporal 
 It cannot distinguish between absence and non-detection, so the 95% CI is (0,1).
 
 
+## Model 3: same as 1 but adults only
+
+```{r sub-NAs-adults-only-all-cams}
+
+adultsOnly_all <- Occupancy_All_MGS_Data_Adults_Only
+
+adultsOnly_all <- adultsOnly_all %>% # remove white space at end of csv
+  select(where(~!all(is.na(.)))) # only remove NA's when whole row is NA
+
+camsAll <- readRDS("./Data/camera_operation.Rds") # no white space
+
+##  --  SUB NA FOR NON-OPERATIONAL DAYS --  ##
+
+adultsOnly_all <- adultsOnly_all %>%
+  mutate(across(2:ncol(.), function(x) {
+    col_name <- cur_column() # current column
+    ifelse(camsAll[[col_name]] == 0, NA, x)
+  }))
+
+
+adultsOnly_all %>% # Tabulate
+  select(-1) %>%
+  pivot_longer(everything()) %>%
+  count(value) %>%
+  arrange(value)
+
+#saveRDS(adultsOnly_all, file = './Data/allCams_adultsOnly.Rds')
+
+```
+
+```{r format-umf-adults-only-all-cams}
+
+###   --    COVARIATES  --  ##
+
+y <- as.matrix(allCams_adultsOnly[,c(2:ncol(allCams_adultsOnly))]) # 0/1 observations
+
+# Create obsCovs
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                  nrow = nrow(y), 
+                  ncol = ncol(y), 
+                  byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                    nrow = nrow(y),
+                    ncol = ncol(y),
+                    byrow = TRUE))
+
+# Create siteCovs
+
+siteCovs <- adultsOnly_all$Camera_Name
+
+
+# UMF Creation
+
+umf_adultsOnly_allCams <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = data.frame(site = siteCovs),
+  obsCovs = obsCovs
+)
+
+#saveRDS(umf_adultsOnly_allCams, file = "./Data/umf_adultsOnly_allCams_noEnv.Rds")
+
+```
+
+
+The Adults-only model was problematic. A couple questions:
+
+1. Are you sure the detections for adults-only follows the same parabolic pattern? I ask because ordinal date was a significant predictor, but the quadratic term was not. I plotted the probability over time and it was messy, but also what I plotted was the results from a model that essentially failed to converge. 
+
+
+```{r model-adults-only-all-cams}
+
+model_adultsOnly_allCams <- occu(~ scOrdinal + scOrdinal2 ~ 1 + (1|site),
+                                 data = umf_adultsOnly_allCams,
+                                 linkPsi = "logit")
+
+occuProb <- predict(model_adultsOnly_allCams, type = "state") # occupancy
+detProb <- predict(model_adultsOnly_allCams, type = "det") # detection
+
+
+
+cat("Range (occupancy probability):", range(occuProb$Predicted))
+cat("Mean (occupancy probability):", mean(occuProb$Predicted))
+
+cat("Range (detection probability):", range(detProb$Predicted))
+cat("Mean (detection probability):", mean(detProb$Predicted))
+
+```
+
+*Plotting Detection Probability trend for adults only*
+
+```{r}
+
+pred_matrix <- matrix(detProb$Predicted, 
+                     nrow = nrow(umf_adultsOnly_allCams@y),
+                     ncol = ncol(umf_adultsOnly_allCams@y))
+
+# Calculate mean predictions for each date (excluding NA sites)
+mean_preds <- colMeans(pred_matrix[-c(84, 183), ], na.rm = TRUE)
+
+dates <- head(dates, -1)
+
+detProbDF <- data.frame("Date" = dates,
+                        "Mean_Detection_Prob" = mean_preds)
+
+ggplot(detProbDF, aes(x = Date, y = Mean_Detection_Prob)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = "Date",
+       y = "Detection Probability",
+       title = "Mean Detection Probability Over Time") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "5 days",  # Show every 5 days
+               date_labels = "%m/%d")  
+
+```
+
+
+*Plotting Count Trend*
+
+```{r}
+
+counts <- allCams_adultsOnly %>%
+  summarize(across(-1, sum, na.rm = TRUE))
+
+
+counts_long <- counts %>%
+  pivot_longer(everything(),
+               names_to = "Date",
+               values_to = "Count") 
+
+counts_long <- counts_long %>% mutate(Date = mdy(Date))
+
+
+# Plot Count Data
+
+ggplot(counts_long, aes(x = Date, y = Count)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = "Date",
+       y = "Number of Detections",
+       title = "Daily Detection Counts") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "5 days",  # Show every 5 days
+               date_labels = "%m/%d")    # Format as month/day
+
+```
 
