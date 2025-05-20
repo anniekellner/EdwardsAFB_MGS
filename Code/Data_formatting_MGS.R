@@ -90,7 +90,7 @@ ordinal2 <- ordinal^2
 
 scOrdinal <- scale(ordinal)
 
-
+#saveRDS(scOrdinal, file = "./Data/Covariates/ordinal_vector_scaled.Rds")
 
 ##  --- CREATE UMF OBJECT   --- ##
 
@@ -124,7 +124,7 @@ umf <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-#saveRDS(umf, file = "./Data/umf_05152025.Rds")
+#saveRDS(umf, file = "./Data/umf_detTrend_allAnimals_allCams_noEnv.Rds")
 
 
 
