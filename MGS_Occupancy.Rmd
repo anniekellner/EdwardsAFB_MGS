@@ -265,7 +265,6 @@ ggplot(counts_long, aes(x = Date, y = Count)) +
   - All animals
   - Independent cameras only
   - Detection trend
-  - Random effect of individual camera
   
 ```{r data-prep-independent-cameras}
 
@@ -339,6 +338,43 @@ umf_ind <- unmarkedFrameOccu(
 )
 
 #saveRDS(umf_ind, file = "./Data/UMFs/umf_independentCams_allAnimals.Rds")
+
+```
+
+```{r modeling-independent-cams-all-animals}
+
+occu_allAnimals_indCams <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+                 data = umf_ind,
+                 linkPsi = "logit")
+
+summary(occu_allAnimals_indCams)
+
+```
+
+Detection trend still highly significant
+
+```{r}
+
+ind_pred_occu <- predict(occu_allAnimals_indCams, type = "state")
+ind_pred_det <- predict(occu_allAnimals_indCams, type = "det")
+
+
+cat("Range (occupancy probability):", range(ind_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(ind_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(ind_pred_det$Predicted))
+cat("Mean (detection probability):", mean(ind_pred_det$Predicted))
+```
+
+Nearly identical results
+
+# Model 5: Independent cameras, adults only
+  - Detection trend
+  - Adult animals only
+
+```{r}
+
+adultsOnly_ind <- 
 
 ```
 
