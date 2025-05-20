@@ -180,9 +180,7 @@ umf_adultsOnly_allCams <- unmarkedFrameOccu(
 ```
 
 
-The Adults-only model was problematic. A couple questions:
-
-1. Are you sure the detections for adults-only follows the same parabolic pattern? I ask because ordinal date was a significant predictor, but the quadratic term was not. I plotted the probability over time and it was messy, but also what I plotted was the results from a model that essentially failed to converge. 
+The Adults-only model was problematic, probably due to the dearth of data. It did provide estimates, but NA's were produced during the calculation of SE
 
 
 ```{r model-adults-only-all-cams}
@@ -262,4 +260,86 @@ ggplot(counts_long, aes(x = Date, y = Count)) +
                date_labels = "%m/%d")    # Format as month/day
 
 ```
+
+# Model 4: 
+  - All animals
+  - Independent cameras only
+  - Detection trend
+  - Random effect of individual camera
+  
+```{r data-prep-independent-cameras}
+
+indCams <- Occupancy_Operational_Camera_Days_MGS_Data_Independent_Cameras_Only
+indDet <- Occupancy_MGS_Data_Independent_Cameras_Only
+
+# Remove white space
+
+indCams <- indCams %>%
+  select(where(~!all(is.na(.))))
+
+
+indDet <- indDet %>% 
+  select(where(~!all(is.na(.)))) 
+
+
+##  --  SUB NA FOR NON-OPERATIONAL DAYS --  ##
+
+indDet <- indDet %>%
+  mutate(across(2:ncol(.), function(x) {
+    col_name <- cur_column() # current column
+    ifelse(indCams[[col_name]] == 0, NA, x)
+  }))
+
+#saveRDS(indDet, file = './Data/detection_allAnimals_independentCams.Rds')
+
+```
+
+```{r umf-independent-cameras}
+
+# Observation Covariates (obsCovs)
+
+names(indDet)[-1] <- paste0(names(indDet)[-1], "/2024") # add year to column names
+
+dates <- colnames(indDet)[-1]
+dates <- mdy(dates)
+
+# Ordinal Dates
+ordinal <- yday(dates)
+
+# Scale to eliminate collinearity
+
+scOrdinal <- scale(ordinal)
+
+## UMF
+
+
+y <- as.matrix(indDet[,c(2:ncol(indDet))]) # 0/1 observations
+
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                  nrow = nrow(y), 
+                  ncol = ncol(y), 
+                  byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                    nrow = nrow(y),
+                    ncol = ncol(y),
+                    byrow = TRUE))
+
+# SiteCovs
+
+siteCovs <- indDet$Camera_Name
+
+# unmarkedFrameOccu call
+
+umf_ind <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = data.frame(site = siteCovs),
+  obsCovs = obsCovs
+)
+
+#saveRDS(umf_ind, file = "./Data/UMFs/umf_independentCams_allAnimals.Rds")
+
+```
+
 
