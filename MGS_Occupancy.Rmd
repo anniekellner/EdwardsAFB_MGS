@@ -82,13 +82,16 @@ mgs.occu <- occu(~ scOrdinal + scOrdinal2 ~ (1|site),
                  data = umf,
                  linkPsi = "logit")
 
-pred_scaled <- predict(mgs.occu, type = "state")
+pred_scaled <- predict(mgs.occu, type = "state") # occupancy
+pred_det <- predict(mgs.occu, type = "det") # detection
 
 
 
-cat("Range:", range(pred_scaled$Predicted))
-cat("Mean:", mean(pred_scaled$Predicted))
+cat("Range (occupancy probability):", range(pred_scaled$Predicted))
+cat("Mean (occupancy probability):", mean(pred_scaled$Predicted))
 
+cat("Range (detection probability):", range(pred_det$Predicted))
+cat("Mean (detection probability):", mean(pred_det$Predicted))
 ```
 
 ## Model 2: same as 1 but *without* detection trend
@@ -100,13 +103,15 @@ mgs.occu.noDet <- occu(~ 1 ~ 1 + (1|site),
                        data = umf,
                        linkPsi = "logit")
 
-noDet_pred <- predict(mgs.occu.noDet, type = "state")
+noDet_pred <- predict(mgs.occu.noDet, type = "state") # "state is occupancy probability; "det" is detection probability
 
 noDet_pred
 
 ```
 
-This model is too simplistic because it does not account for any spatiotemporal variation. It cannot distinguish between absence and non-detection, so the 95% CI is (0,1).
+This model is too simplistic because it does not account for any spatiotemporal variation (besides individual camera, which does not absorb much variation). 
+
+It cannot distinguish between absence and non-detection, so the 95% CI is (0,1).
 
 
 
