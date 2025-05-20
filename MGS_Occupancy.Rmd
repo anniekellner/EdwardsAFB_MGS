@@ -10,11 +10,14 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+
+
 ```{r libraries}
 
 library(tidyverse)
 library(unmarked)
 library(kableExtra)
+library(terra)
 
 ```
 
@@ -57,6 +60,53 @@ kableExtra::kbl(tabCams) %>%
   kableExtra::row_spec(0, bold = TRUE)  # Makes header row bold
 
 ```
+
+
+# Modeling
+
+## Model 1
+  - All Animals
+  - All Cameras
+  - Detection Trend
+  - Random Effect of Individual Camera
+
+```{r}
+
+#umf <- readRDS('./Data/umf_05152025.Rds')
+
+# Model 
+  # quadratic term on ordinal date (for parabolic detection prob)
+  # random effect for individual camera
+
+mgs.occu <- occu(~ scOrdinal + scOrdinal2 ~ (1|site),
+                 data = umf,
+                 linkPsi = "logit")
+
+pred_scaled <- predict(mgs.occu, type = "state")
+
+
+
+cat("Range:", range(pred_scaled$Predicted))
+cat("Mean:", mean(pred_scaled$Predicted))
+
+```
+
+## Model 2: same as 1 but *without* detection trend
+
+
+```{r}
+
+mgs.occu.noDet <- occu(~ 1 ~ 1 + (1|site),
+                       data = umf,
+                       linkPsi = "logit")
+
+noDet_pred <- predict(mgs.occu.noDet, type = "state")
+
+noDet_pred
+
+```
+
+This model is too simplistic because it does not account for any spatiotemporal variation. It cannot distinguish between absence and non-detection, so the 95% CI is (0,1).
 
 
 
