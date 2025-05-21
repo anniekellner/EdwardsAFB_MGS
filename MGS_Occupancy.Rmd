@@ -372,10 +372,104 @@ Nearly identical results
   - Detection trend
   - Adult animals only
 
-```{r}
+```{r data-prep-independent-cams-adults-only}
 
-adultsOnly_ind <- 
+adultsOnly_ind <- Occupancy_MGS_Data_Independent_Cameras_Only_Adults_Only
+
+adultsOnly_ind <- adultsOnly_ind %>%
+  select(where(~!all(is.na(.))))
+
+indCams <- Occupancy_Operational_Camera_Days_MGS_Data_Independent_Cameras_Only
+
+indCams <- indCams %>%
+  select(where(~!all(is.na(.))))
+
+indDet_adults <- adultsOnly_ind %>%
+  mutate(across(2:ncol(.), function(x) {
+    col_name <- cur_column() # current column
+    ifelse(indCams[[col_name]] == 0, NA, x)
+  }))
+
+#saveRDS(indDet_adults, file = "./Data/Detection/Detection_NAs_indCams_adultsOnly.Rds")
 
 ```
 
+```{r umf-independent-cams-adults-only}
 
+# Covariates
+
+# Observation Covariates (obsCovs)
+
+names(indDet_adults)[-1] <- paste0(names(indDet_adults)[-1], "/2024") # add year to column names
+
+dates <- colnames(indDet_adults)[-1]
+dates <- mdy(dates)
+
+# Ordinal Dates
+ordinal <- yday(dates)
+
+# Scale to eliminate collinearity
+
+scOrdinal <- scale(ordinal)
+
+
+## UMF
+
+y <- as.matrix(indDet_adults[,c(2:ncol(indDet_adults))]) # 0/1 observations
+
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                  nrow = nrow(y), 
+                  ncol = ncol(y), 
+                  byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                    nrow = nrow(y),
+                    ncol = ncol(y),
+                    byrow = TRUE))
+
+# SiteCovs
+
+siteCovs <- indDet_adults$Camera_Name
+
+# unmarkedFrameOccu call
+
+umf_ind_adults <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = data.frame(site = siteCovs),
+  obsCovs = obsCovs
+)
+
+#saveRDS(umf_ind_adults, file = "./Data/UMFs/umf_independentCams_adults.Rds")
+
+
+```
+
+```{r modeling-independent-cams-adults-only}
+
+occu_adults_indCams <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+                 data = umf_ind_adults,
+                 linkPsi = "logit")
+
+summary(occu_adults_indCams)
+
+```
+
+Shockingly, detection trend is still highly significant.
+
+```{r results-independent-cams-adults-only}
+
+ind_adults_pred_occu <- predict(occu_adults_indCams, type = "state")
+ind_adults_pred_det <- predict(occu_adults_indCams, type = "det")
+
+
+cat("Range (occupancy probability):", range(ind_adults_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(ind_adults_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(ind_adults_pred_det$Predicted))
+cat("Mean (detection probability):", mean(ind_adults_pred_det$Predicted))
+
+
+```
+
+Occupancy probability is exactly the same across all sites, and similar to All Cams with adults only. Detection probability varies across sites.
