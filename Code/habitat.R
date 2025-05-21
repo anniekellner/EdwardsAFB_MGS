@@ -45,7 +45,7 @@ camCoords <- camCoords %>%
 #saveRDS(camCoords, file = "./Data/Spatial/camCoords.Rds")
 
 
-##  --  Add lat/long to camera DF   --  ##
+
 
 
 
