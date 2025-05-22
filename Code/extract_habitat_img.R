@@ -2,6 +2,16 @@
 ###               EXTRACT HABITAT TYPE                                       ###
 ################################################################################
 
+# This script pulls habitat classifications for all camera locations from 
+  # "N:\RStor\CEMML\EdwardsAFB\Habitat_Mapping\Final_Deliverables\FINAL_20231110\Geospatial\FINAL_CWHR_EAFB_20231103.img.xml"
+  # (and associated files)
+
+# Methods:
+    # Created a 150 m buffer around points to get majority habitat within animal home range
+
+# Script written by Annie Kellner for CEMML 5-21-2025
+
+
 library(tidyverse)
 library(terra)
 library(sf)
