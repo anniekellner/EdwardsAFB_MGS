@@ -78,8 +78,8 @@ kableExtra::kbl(tabCams) %>%
   # quadratic term on ordinal date (for parabolic detection prob)
   # random effect for individual camera
 
-mgs.occu <- occu(~ scOrdinal + scOrdinal2 ~ (1|site),
-                 data = umf,
+mgs.occu <- occu(~ scOrdinal + scOrdinal2 ~ (1|Camera_Name),
+                 data = umf_env_all,
                  linkPsi = "logit")
 
 pred_scaled <- predict(mgs.occu, type = "state") # occupancy
@@ -473,3 +473,35 @@ cat("Mean (detection probability):", mean(ind_adults_pred_det$Predicted))
 ```
 
 Occupancy probability is exactly the same across all sites, and similar to All Cams with adults only. Detection probability varies across sites.
+
+
+### ADDING ENVIRONMENTAL COVARIATES
+
+## Model 1: 
+  - all animals
+  - all cameras
+  - Environmental Covariates: Habitat Class (raster), Distance to Stream
+  - Random effect of Camera Name
+  - Detection effects: date terms
+  - Occupancy effects: Env Covs + Camera
+  
+```{r}
+
+allAnimals_allCams_allCovs_occupancyEffect <- occu(~ scOrdinal + scOrdinal2
+                                                   ~ Habitat_Class + 
+                                                     Dist_to_Stream + 
+                                                     (1|Camera_Name),
+                                                   data = umf_env_all,
+                                                   linkPsi = "logit")
+
+summary(allAnimals_allCams_allCovs_occupancyEffect)
+
+
+```
+
+```{r}
+
+
+
+```
+
