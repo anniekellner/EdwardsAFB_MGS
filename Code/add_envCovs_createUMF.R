@@ -42,9 +42,17 @@ names(detEnv) <- as.character(names(detEnv))
 detEnv <- detEnv %>%
   rename("Dist_to_Stream" = "Dist_to_Stream/2024")
 
-# Observation Covariates (obsCovs)
+## Observation Covariates
 
-scOrdinal <- readRDS("./Data/Covariates/ordinal_vector_scaled.Rds") # scaled ordinal dates
+# Get dates from column names
+
+dates <- colnames(detEnv)[2:111]
+dates <- mdy(dates)
+
+# Ordinal Dates
+ordinal <- yday(dates)
+scOrdinal <- scale(ordinal)
+
 
 
 ## Create UMF
@@ -64,7 +72,21 @@ obsCovs <- list(
                       byrow = TRUE))
 # Site Covs
 
-siteCovs(list(
-  detEnv$Camera_Name,
-  
-))
+siteCovs <- data.frame(
+  Camera_Name = detEnv$Camera_Name,
+  Study_Site = detEnv$`Study Site`,
+  Habitat_Class = detEnv$Raster_Habitat_Class,
+  Dist_to_Stream = detEnv$Dist_to_Stream
+)
+
+#saveRDS(detEnv, file = "./Data/allCams_allAnimals_allCovs.Rds")
+
+# UMF
+
+umf_env_all <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = siteCovs,
+  obsCovs = obsCovs
+)
+
+saveRDS(umf_env_all, file = "./Data/UMFs/umf_allCovs_allCams_allAnimals.Rds")
