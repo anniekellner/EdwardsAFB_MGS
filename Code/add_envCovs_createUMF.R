@@ -32,4 +32,39 @@ detEnv <- detAll %>%
 
 ##    ----    CREATE UMF    ----    ##
 
+## Adjust column names
 
+detEnv <- detEnv %>%
+  rename_with(~paste0(., "/2024"), where(is.numeric))
+
+names(detEnv) <- as.character(names(detEnv))
+
+detEnv <- detEnv %>%
+  rename("Dist_to_Stream" = "Dist_to_Stream/2024")
+
+# Observation Covariates (obsCovs)
+
+scOrdinal <- readRDS("./Data/Covariates/ordinal_vector_scaled.Rds") # scaled ordinal dates
+
+
+## Create UMF
+
+y <- as.matrix(detEnv[,c(2:111)]) # 0/1 observations
+
+# Observation Covs
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                     nrow = nrow(y), 
+                     ncol = ncol(y), 
+                     byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                      nrow = nrow(y),
+                      ncol = ncol(y),
+                      byrow = TRUE))
+# Site Covs
+
+siteCovs(list(
+  detEnv$Camera_Name,
+  
+))
