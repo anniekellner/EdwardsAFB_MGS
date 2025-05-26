@@ -485,7 +485,7 @@ Occupancy probability is exactly the same across all sites, and similar to All C
   - Detection effects: date terms
   - Occupancy effects: Env Covs + Camera
   
-```{r}
+```{r all-animals-all-cams-all-covs}
 
 allAnimals_allCams_allCovs_occupancyEffect <- occu(~ scOrdinal + scOrdinal2
                                                    ~ Habitat_Class + 
@@ -508,7 +508,7 @@ summary(allAnimals_allCams_allCovs_occupancyEffect)
   - Occupancy effects: Env Covs
 
 
-```{r}
+```{r adults-independentCams-allCovs}
 
 adults_only_ind_cams_envCovs <- occu(~scOrdinal + scOrdinal2
                                      ~ Habitat_Class + Dist_to_Stream,
@@ -519,7 +519,94 @@ summary(adults_only_ind_cams_envCovs)
 
 ```
 
-```{r}
+This model has large or missing SE values, which is likely due to the sparsity of data (i.e., too few observations).
+
+I think the next step is to use only adults; all cameras. 
+
+## Model 3: 
+  - adults only
+  - all cameras
+  - environmental covs: Dist to Stream and Habitat Class (raster)
+  - Detection effect: date terms
+  - Occupancy effect: Env Covs (fixed), camera name (random)
+
+```{r adults-only-all-cams-allCovs, message=FALSE, warning=FALSE}
+
+m3_adults_allCams_envCovs <- occu(~scOrdinal + scOrdinal2
+                                     ~ Habitat_Class + Dist_to_Stream + (1|camera_name),
+                                     data = umf_adultsOnly_allCams_envCovs,
+                                     linkPsi = "logit")
+
+summary(m3_adults_allCams_envCovs)
 
 ```
 
+Even though none of the environmental covs are significant, let's see what the occupancy looks like:
+
+```{r}
+
+all_adults_pred_occu <- predict(m3_adults_allCams_envCovs, type = "state")
+all_adults_pred_det <- predict(m3_adults_allCams_envCovs, type = "det")
+
+
+cat("The mean 95% CI is:", mean(all_adults_pred_occu$lower), "-", mean(all_adults_pred_occu$upper))
+
+cat("Range (occupancy probability):", range(all_adults_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(all_adults_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(all_adults_pred_det$Predicted))
+cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
+
+```
+
+Here we are again with an enormous CI, which means our model has too much uncertainty. This may be a function of too many variables for the amount of data.
+
+A reasonable next step might be to eliminate the habitat classes, because each is estimated separately, and use only distance to dry stream bed.
+
+## Model 4
+  - Adults only
+  - all cameras
+  - Env Covs: Dist to Streams only
+  - Detection Covs: date terms
+  - Occupancy Covs: distance to streams (fixed), camera name (random)
+
+```{r model4-allCams-adults-dist2streams}
+
+m4_adults_allCams_streamsOnly <- occu(~scOrdinal + scOrdinal2
+                                     ~ Dist_to_Stream + (1|camera_name),
+                                     data = umf_adultsOnly_allCams_streams,
+                                     linkPsi = "logit")
+
+summary(m4_adults_allCams_streamsOnly)
+```
+Woohoo! Distance to Streams is significant! And the SE looks good. 
+
+```{r m4-summaries}
+
+all_adults_pred_occu <- predict(m4_adults_allCams_streamsOnly, type = "state")
+all_adults_pred_det <- predict(m4_adults_allCams_streamsOnly, type = "det")
+
+
+cat("The mean 95% CI is:", mean(all_adults_pred_occu$lower), "-", mean(all_adults_pred_occu$upper))
+
+cat("Range (occupancy probability):", range(all_adults_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(all_adults_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(all_adults_pred_det$Predicted))
+cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
+
+
+```
+
+Ergh, the upper 95% CI goes to 1 for all cameras, and the max lower interval ~ 0. Not good. But still promising that distance to streams was significant.
+
+## Model 5
+  - Independent cameras only
+  - Adults only
+  - Detection Covs: date terms
+  - Occupancy Covs: distance to streams
+  
+  
+  
+  
+  
