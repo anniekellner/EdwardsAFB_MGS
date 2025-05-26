@@ -579,7 +579,7 @@ m4_adults_allCams_streamsOnly <- occu(~scOrdinal + scOrdinal2
 
 summary(m4_adults_allCams_streamsOnly)
 ```
-Woohoo! Distance to Streams is significant! And the SE looks good. 
+Woohoo! Distance to Streams is significant! 
 
 ```{r m4-summaries}
 
@@ -607,6 +607,65 @@ Ergh, the upper 95% CI goes to 1 for all cameras, and the max lower interval ~ 0
   - Occupancy Covs: distance to streams
   
   
+```{r}
+
+
+m5_adults_indCams_streamsOnly <- occu(~scOrdinal + scOrdinal2
+                                     ~ Dist_to_Stream,
+                                     data = umf_adultsOnly_indCams_streamsOnly,
+                                     linkPsi = "logit")
+
+summary(m5_adults_indCams_streamsOnly)
+
+```
   
+```{r m5-summaries}
+
+all_adults_pred_occu <- predict(m5_adults_indCams_streamsOnly, type = "state")
+all_adults_pred_det <- predict(m5_adults_indCams_streamsOnly, type = "det")
+
+
+cat("The mean 95% CI is:", mean(all_adults_pred_occu$lower), "-", mean(all_adults_pred_occu$upper)) # YASSSSS KWEEEEENNNNN
+
+cat("Range (occupancy probability):", range(all_adults_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(all_adults_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(all_adults_pred_det$Predicted))
+cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
+
+
+```
   
-  
+Let's try scaling the distance to streams
+
+## Model 6: same as 5 but scaled distance to streams
+
+```{r}
+
+
+m6_adults_indCams_streamsOnly_scaled <- occu(~scOrdinal + scOrdinal2
+                                     ~ Dist_to_Stream,
+                                     data = umf_adultsOnly_indCams_streamsOnly_allScaled,
+                                     linkPsi = "logit")
+
+summary(m6_adults_indCams_streamsOnly_scaled)
+
+```
+
+```{r}
+
+all_adults_pred_occu <- predict(m6_adults_indCams_streamsOnly_scaled, type = "state")
+all_adults_pred_det <- predict(m6_adults_indCams_streamsOnly_scaled, type = "det")
+
+
+cat("The mean 95% CI is:", mean(all_adults_pred_occu$lower), "-", mean(all_adults_pred_occu$upper)) # YASSSSS KWEEEEENNNNN
+
+cat("Range (occupancy probability):", range(all_adults_pred_occu$Predicted))
+cat("Mean (occupancy probability):", mean(all_adults_pred_occu$Predicted))
+
+cat("Range (detection probability):", range(all_adults_pred_det$Predicted))
+cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
+
+
+```
+
