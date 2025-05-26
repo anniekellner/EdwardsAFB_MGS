@@ -60,15 +60,16 @@ obsCovs <- list(
 # Site Covs
 
 siteCovs <- data.frame(
-  Habitat_Class = adults_only_all_cams$Raster_Habitat_Class,
+  #Habitat_Class = adults_only_all_cams$Raster_Habitat_Class,
   Dist_to_Stream = adults_only_all_cams$Dist_to_Stream,
   camera_name = adults_only_all_cams$Camera_Name
 )
 
-umf_adultsOnly_allCams_envCovs <- unmarkedFrameOccu(
+umf_adultsOnly_allCams_streams <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
 #saveRDS(umf_adultsOnly_allCams_envCovs, file = "./Data/UMFs/umf_adultsOnly_allCams_envCovs.Rds")
+#saveRDS(umf_adultsOnly_allCams_streams, file = "./Data/UMFs/umf-adultsOnly_allCams_streams.Rds")
