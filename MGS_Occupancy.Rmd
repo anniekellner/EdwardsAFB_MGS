@@ -499,9 +499,27 @@ summary(allAnimals_allCams_allCovs_occupancyEffect)
 
 ```
 
+
+## Model 2: 
+  - adults only
+  - independent cameras only
+  - environmental covs: Dist to Stream; Habitat Class (raster)
+  - Detection effect: date terms
+  - Occupancy effects: Env Covs
+
+
 ```{r}
 
+adults_only_ind_cams_envCovs <- occu(~scOrdinal + scOrdinal2
+                                     ~ Habitat_Class + Dist_to_Stream,
+                                     data = umf_adultsOnly_indCams_envCovs,
+                                     linkPsi = "logit")
 
+summary(adults_only_ind_cams_envCovs)
+
+```
+
+```{r}
 
 ```
 
