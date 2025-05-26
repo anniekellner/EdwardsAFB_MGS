@@ -55,15 +55,19 @@ obsCovs <- list(
 
 # Site Covs
 
+# Scale Distance to Stream
+
+scDist <- scale(adults_only_ind_cams$Dist_to_Stream)
+
 siteCovs <- data.frame(
-  Habitat_Class = adults_only_ind_cams$Raster_Habitat_Class,
-  Dist_to_Stream = adults_only_ind_cams$Dist_to_Stream
+  #Habitat_Class = adults_only_ind_cams$Raster_Habitat_Class,
+  Dist_to_Stream = scDist
 )
 
-umf_adultsOnly_indCams_envCovs <- unmarkedFrameOccu(
+umf_adultsOnly_indCams_streamsOnly_allScaled <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_adultsOnly_indCams_envCovs, file = "./Data/UMFs/umf_adultsOnly_indCams_envCovs.Rds")
+#saveRDS(umf_adultsOnly_indCams_streamsOnly_allScaled, file = "./Data/UMFs/umf_adultsOnly_indCams_streamsOnly_allScaled.Rds")
