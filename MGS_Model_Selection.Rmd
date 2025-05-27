@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(unmarked)
 library(tidyverse)
+library(MuMIn)
 
 ```
 
@@ -144,5 +145,37 @@ m4_jTree <- occu(~ scOrdinal + scOrdinal2 ~ Habitat_Class,
 
 ```
 
+### Compare Models
+
+```{r}
+
+model_list <- list(
+  "Intercept-Only" = m1_occuIntercept,
+  "Distance_to_Streams" = m2_occu_streams,
+  "Desert Scrub" = m3_scrub,
+  "Joshua_Tree" = m4_jTree
+)
+
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+```
 
 
