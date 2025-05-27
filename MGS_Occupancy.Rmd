@@ -440,14 +440,14 @@ umf_ind_adults <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_ind_adults, file = "./Data/UMFs/umf_independentCams_adults.Rds")
+umf_ind_adults <- readRDS("./Data/UMFs/umf_independentCams_adults.Rds")
 
 
 ```
 
 ```{r modeling-independent-cams-adults-only}
 
-occu_adults_indCams <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+m1_adults_indCams_noEnv <- occu(~ scOrdinal + scOrdinal2 ~ 1,
                  data = umf_ind_adults,
                  linkPsi = "logit")
 
@@ -609,7 +609,6 @@ Ergh, the upper 95% CI goes to 1 for all cameras, and the max lower interval ~ 0
   
 ```{r}
 
-
 m5_adults_indCams_streamsOnly <- occu(~scOrdinal + scOrdinal2
                                      ~ Dist_to_Stream,
                                      data = umf_adultsOnly_indCams_streamsOnly,
@@ -645,7 +644,7 @@ Let's try scaling the distance to streams
 
 m6_adults_indCams_streamsOnly_scaled <- occu(~scOrdinal + scOrdinal2
                                      ~ Dist_to_Stream,
-                                     data = umf_adultsOnly_indCams_streamsOnly_allScaled,
+                                     data = scaled,
                                      linkPsi = "logit")
 
 summary(m6_adults_indCams_streamsOnly_scaled)
@@ -669,5 +668,15 @@ cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
 # Save occupancy predictions so can superimpose ontp cameras
 
 occupancyProbs <- all_adults_pred_occu
+
+occupancyProbs <- occupancyProbs %>%
+  mutate(camID = row_number())
+
+```
+
+# Model 7: Detection covariates only
+
+```{r}
+
 ```
 
