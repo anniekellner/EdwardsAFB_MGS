@@ -6,15 +6,143 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = FALSE)
-```
-
-### Model 1
-  - Detection: date terms
-  - Occupancy: Intercept-only
-  
-```{r}
 
 ```
+
+```{r load-libraries, message=FALSE, warning=FALSE}
+
+library(unmarked)
+library(tidyverse)
+
+```
+
+
+*All models use adults and independent cameras only*
+*All models use date terms as detection covariates*
+
+### Model 1: Intercept-only
   
+```{r m1-intercept-only}
+
+m1_occuIntercept <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+                         data = umf1,
+                         linkPsi = "logit")
+
+```
   
+### Model 2: Occupancy Cov = Distance to Stream Only
+  
+```{r m2-streams, warning=FALSE}
+
+m2_occu_streams <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
+                        data = umf_adultsOnly_indCams_streamsOnly,
+                        linkPsi = "logit") 
+
+```
+
+### Model 3: Occupancy Cov = Habitat Only (Desert Scrub vs. Not Desert Scrub)
+
+```{r m3-desertScrub-setup}
+
+
+y <- as.matrix(detHab[,c(2:111)]) 
+
+## Observation Covariates
+
+# Get dates from column names
+
+names(detHab)[2:111] <- paste0(names(detHab)[2:111], "/2024") # add year to column names
+
+dates <- colnames(detHab)[2:111]
+dates <- mdy(dates)
+
+# Ordinal Dates
+ordinal <- yday(dates)
+scOrdinal <- scale(ordinal)
+
+# Observation Covs
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                     nrow = nrow(y), 
+                     ncol = ncol(y), 
+                     byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                      nrow = nrow(y),
+                      ncol = ncol(y),
+                      byrow = TRUE))
+
+# Site Covs
+
+siteCovs <- data.frame(
+  Habitat_Class = detHab$Raster_Habitat_Class,
+  Dist_to_Stream = detHab$Dist_to_Stream
+)
+
+# UMF
+
+umf_scrub <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = siteCovs,
+  obsCovs = obsCovs
+)
+
+```
+
+```{r model3-scrub}
+
+m3_scrub <- occu(~ scOrdinal + scOrdinal2 ~ Habitat_Class,
+                 data = umf_scrub,
+                 linkPsi = "logit")
+
+```
+
+## Model 4: Occupancy Cov = Habitat Only (Joshua Tree Woodland vs. Other)
+
+```{r model4-jtree-setup}
+
+y <- as.matrix(detJtree[,c(2:111)]) 
+
+
+# Observation Covs
+
+obsCovs <- list(
+  scOrdinal = matrix(scOrdinal, 
+                     nrow = nrow(y), 
+                     ncol = ncol(y), 
+                     byrow = TRUE),
+  scOrdinal2 = matrix(scOrdinal^2, 
+                      nrow = nrow(y),
+                      ncol = ncol(y),
+                      byrow = TRUE))
+
+# Site Covs
+
+siteCovs <- data.frame(
+  Habitat_Class = detJtree$Raster_Habitat_Class,
+  Dist_to_Stream = detJtree$Dist_to_Stream
+)
+
+# UMF
+
+umf_jtree <- unmarkedFrameOccu(
+  y = y,
+  siteCovs = siteCovs,
+  obsCovs = obsCovs
+)
+
+
+```
+
+```{r model4-jtree}
+
+m4_jTree <- occu(~ scOrdinal + scOrdinal2 ~ Habitat_Class,
+                 data = umf_jtree,
+                 linkPsi = "logit")
+
+```
+
+
+
