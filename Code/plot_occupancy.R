@@ -12,7 +12,7 @@ library(viridisLite)
 
 streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp")
 
-
+indCams <- adults_only_ind_cams
 
 
 
@@ -40,14 +40,14 @@ occuProbsUTM <- st_transform(occuProbsSF, st_crs(streams))
 
 tmap_mode('view')
 
-
+tm_shape(streams) + 
+  tm_lines(col = "blue") +
 tm_shape(occuProbsSF) + 
   tm_symbols(fill = "Predicted",
              size = 0.5,
              popup.vars = "Dist_to_Stream",
              fill.scale = tm_scale_continuous(values = "viridis")) +
-  tm_layout(legend.reverse = TRUE) + 
-  tm_shape(streams) + 
-  tm_lines(col = "blue")
+  tm_layout(legend.reverse = TRUE) 
+ 
 
 
