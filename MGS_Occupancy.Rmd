@@ -666,6 +666,8 @@ cat("Mean (occupancy probability):", mean(all_adults_pred_occu$Predicted))
 cat("Range (detection probability):", range(all_adults_pred_det$Predicted))
 cat("Mean (detection probability):", mean(all_adults_pred_det$Predicted))
 
+# Save occupancy predictions so can superimpose ontp cameras
 
+occupancyProbs <- all_adults_pred_occu
 ```
 
