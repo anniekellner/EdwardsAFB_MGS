@@ -72,6 +72,6 @@ finalUMF <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-saveRDS(finalUMF, file = "./Data/UMFs/finalUMF_05292025.Rds")
+#saveRDS(finalUMF, file = "./Data/UMFs/finalUMF_05292025.Rds")
 
   
