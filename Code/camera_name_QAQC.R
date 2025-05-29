@@ -15,7 +15,14 @@ old <- readRDS("./Data/Camera_Operation/Derived/camera_operation.Rds")
 new <- read_csv(file = "./Data/Camera_Operation/Raw/Camera_Locations_GIS_MGS_v4_alteredAK.csv",
                 col_names = TRUE,
                 col_select = c("Camera_Name", "Longitude", "Latitude"),
-                trim_ws = TRUE)
+                trim_ws = TRUE) # Cole spreadsheet
+
+newAdam <- read_csv("./Data/Camera_Operation/Raw/Final_Camera_Locations_FromGIS_AD.csv")
+
+
+##    ----    CHECK CAMERA NAMES    ----    ##
+
+# Cole
 
 setdiff(old$Camera_Name, new$Camera_Name)
 setdiff(new$Camera_Name, old$Camera_Name)
@@ -32,4 +39,11 @@ new_nameChanges <- new %>%
     TRUE ~ Camera_Name
   ))
 
-setdiff(old$Camera_Name, new_nameChanges$Camera_Name)
+
+# Adam
+
+newAdam <- newAdam %>%
+  filter(!CameraName %in% c("1994-N02-05", "HQA-43-07", "HQA-43-09"))
+
+#saveRDS(newAdam, file = "./Data/Camera_Operation/Derived/Final_Camera_Locations_FromGIS_AD_AK_05282025.Rds")
+
