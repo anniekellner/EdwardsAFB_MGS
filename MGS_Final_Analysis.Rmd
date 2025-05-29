@@ -1,0 +1,54 @@
+---
+title: "MGS_Occupancy_Final_Analysis"
+author: "Annie Kellner"
+date: "2025-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-libraries}
+
+library(tidyverse)
+library(unmarked)
+library(MuMIn)
+library(sf)
+library(tmap)
+library(tmaptools)
+
+```
+
+
+## Model 1: Intercept-Only
+
+```{r intercept-only}
+
+umf1 <- umf_independentCams_adults
+
+m1 <- occu(~ 1 ~ 1,
+           data = umf1,
+           linkPsi = "logit")
+
+```
+
+
+## Model 2: Detection Trend Only (date terms: linear + quadratic)
+
+```{r det-trend-only}
+
+m2 <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+           data = umf1,
+           linkPsi = "logit")
+```
+
+
+## Model 3: Detection Trend (date terms) + Occupancy Trend (distance to stream)
+
+```{r}
+
+
+
+```
+
