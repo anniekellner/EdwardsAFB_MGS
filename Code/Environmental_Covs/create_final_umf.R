@@ -61,7 +61,7 @@ obsCovs <- list(
 # Site Covs
 
 siteCovs <- data.frame(
-  Dist_to_Stream = detEnv$Dist_to_Stream
+  Dist_to_Stream = scale(detEnv$Dist_to_Stream)
 )
 
 # UMF
