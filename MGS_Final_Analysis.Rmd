@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
 ```{r load-libraries}
@@ -21,11 +21,19 @@ library(tmaptools)
 ```
 
 
+```{r load-data}
+
+umf1 <- readRDS("./Data/UMFs/umf_independentCams_adults.Rds")
+
+finalUMF <- readRDS("./Data/UMFs/finalUMF_05292025.Rds")
+
+```
+
+
+
 ## Model 1: Intercept-Only
 
 ```{r intercept-only}
-
-umf1 <- umf_independentCams_adults
 
 m1 <- occu(~ 1 ~ 1,
            data = umf1,
@@ -46,9 +54,56 @@ m2 <- occu(~ scOrdinal + scOrdinal2 ~ 1,
 
 ## Model 3: Detection Trend (date terms) + Occupancy Trend (distance to stream)
 
+```{r all-trends}
+
+m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
+           data = finalUMF,
+           linkPsi = "logit")
+
+```
+
+## Model 4: No detection trend; Occupancy Trend (distance to stream)
+
 ```{r}
 
+m4 <- occu(~ 1 ~ Dist_to_Stream,
+           data = finalUMF,
+           linkPsi = "logit")
 
+```
+
+
+## AIC Analysis
+
+```{r}
+
+model_list <- list(
+  "Intercept-Only" = m1,
+  "Detection_Trend_Only" = m2,
+  "Detection_and_Occupancy_Covs" = m3,
+  "Occupancy_Cov_only" = m4
+)
+
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
 
 ```
 
