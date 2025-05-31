@@ -1,0 +1,61 @@
+---
+title: "MGS_DataMerge"
+author: "Cole T. Crossett"
+date: "2025-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r}
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+head(dat)  # Display the first few rows of the data to check the import
+
+# View(dat)  # Uncomment to view the entire data frame in a spreadsheet-like format
+# colnames(dat)  # Uncomment to display the column names of the data frame
+
+```
+
+# Data Selection
+```{r}
+# Select columns from 'Camera.Name' to 'X6.26', then reshape the data from wide to long format
+# Filter rows where the 'value' column equals 1 (indicating active days)
+active.days <- dat %>% 
+  select(Camera.Name:X6.26) %>%  # Select relevant columns
+  pivot_longer(cols = X2.22:X6.26) %>%  # Convert wide format to long format
+  filter(value == 1)  # Keep only rows where 'value' is 1
+```
+
+# Rename everything
+```{r}
+# Rename columns for clarity
+active.days <- 
+  active.days %>% rename(
+  Dates = name,  # Rename 'name' column to 'Dates'
+  Active.day = value)  # Rename 'value' column to 'Active.day'
+```
+
+```{r}
+# Change the date format in the 'Dates' column
+active.days <- active.days %>% 
+  mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+
+active.days <- active.days %>% 
+  mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+
+View(active.days)
+```
+

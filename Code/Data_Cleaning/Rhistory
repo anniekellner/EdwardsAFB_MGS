@@ -1,0 +1,197 @@
+knitr::opts_chunk$set(echo = TRUE)
+write.csv(active.days, file = "N:\\RStor\\CEMML\\EdwardsAFB\\Mohave_Ground_Squirrel\\GIS_and_Monitoring_Data\\2024\\Field Data\\Active_Camera_Days01172025.csv", row.names = FALSE)
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+head(dat)  # Display the first few rows of the data to check the import
+# View(dat)  # Uncomment to view the entire data frame in a spreadsheet-like format
+# colnames(dat)  # Uncomment to display the column names of the data frame
+# Select columns from 'Camera.Name' to 'X6.26', then reshape the data from wide to long format
+# Filter rows where the 'value' column equals 1 (indicating active days)
+active.days <- dat %>%
+select(Camera.Name:X6.26) %>%  # Select relevant columns
+pivot_longer(cols = X2.22:X6.26) %>%  # Convert wide format to long format
+filter(value == 1)  # Keep only rows where 'value' is 1
+# Rename columns for clarity
+active.days <-
+active.days %>% rename(
+Dates = name,  # Rename 'name' column to 'Dates'
+Active.day = value)  # Rename 'value' column to 'Active.day'
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+write.csv(active.days, file = "N:\\RStor\\CEMML\\EdwardsAFB\\Mohave_Ground_Squirrel\\GIS_and_Monitoring_Data\\2024\\Field Data\\Active_Camera_Days01172025.csv", row.names = FALSE)
+# Print confirmation message
+cat("Master CSV file created successfully!")
+# Print confirmation message
+cat("CSV file created successfully!")
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+head(dat)  # Display the first few rows of the data to check the import
+# View(dat)  # Uncomment to view the entire data frame in a spreadsheet-like format
+# colnames(dat)  # Uncomment to display the column names of the data frame
+# Select columns from 'Camera.Name' to 'X6.26', then reshape the data from wide to long format
+# Filter rows where the 'value' column equals 1 (indicating active days)
+active.days <- dat %>%
+select(Camera.Name:X6.26) %>%  # Select relevant columns
+pivot_longer(cols = X2.22:X6.26) %>%  # Convert wide format to long format
+filter(value == 1)  # Keep only rows where 'value' is 1
+# Rename columns for clarity
+active.days <-
+active.days %>% rename(
+Dates = name,  # Rename 'name' column to 'Dates'
+Active.day = value)  # Rename 'value' column to 'Active.day'
+View(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+write.csv(active.days, file = "N:\\RStor\\CEMML\\EdwardsAFB\\Mohave_Ground_Squirrel\\GIS_and_Monitoring_Data\\2024\\Field Data\\Active_Camera_Days01172025.csv", row.names = FALSE)
+# Print confirmation message
+cat("CSV file created successfully!")
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+Formatted_Dates = paste0("2024", gsub("^(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\0\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+mutate(
+Formatted_Dates = paste0("2024", gsub("^(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\0\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+print(active.days)
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+head(dat)  # Display the first few rows of the data to check the import
+# View(dat)  # Uncomment to view the entire data frame in a spreadsheet-like format
+# colnames(dat)  # Uncomment to display the column names of the data frame
+# Select columns from 'Camera.Name' to 'X6.26', then reshape the data from wide to long format
+# Filter rows where the 'value' column equals 1 (indicating active days)
+active.days <- dat %>%
+select(Camera.Name:X6.26) %>%  # Select relevant columns
+pivot_longer(cols = X2.22:X6.26) %>%  # Convert wide format to long format
+filter(value == 1)  # Keep only rows where 'value' is 1
+# Rename columns for clarity
+active.days <-
+active.days %>% rename(
+Dates = name,  # Rename 'name' column to 'Dates'
+Active.day = value)  # Rename 'value' column to 'Active.day'
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+mutate(
+Formatted_Dates = paste0("2024", gsub("^(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\0\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+print(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\0\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+print(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+mutate(Dates = gsub("^(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\0\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+print(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+# Add leading zero for days less than 10
+active.days <- active.days %>%
+mutate(Dates = gsub("^(\\d{2})\\.(\\d{1,2})$","\\1\\2", gsub("(\\d{2})\\.(\\d{1})$","\\1\\00\\2", Dates)))# Ensure leading 0 for single-digit days)# View the result
+print(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+print(active.days)
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\100\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+print(active.days)
+#write csv
+write.csv(active.days, file = "N:\\RStor\\CEMML\\EdwardsAFB\\Mohave_Ground_Squirrel\\GIS_and_Monitoring_Data\\2024\\Field Data\\Active_Camera_Days01172025.csv", row.names = FALSE)
+# Print confirmation message
+cat("CSV file created successfully!")
+knitr::opts_chunk$set(echo = TRUE)
+## R Markdown
+```{r}
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+# Clear Environment: Remove all objects from the current workspace to start fresh
+rm(list=ls())
+# Load libraries: Load the dplyr and tidyr packages for data manipulation
+library(dplyr)
+library(tidyr)
+# Import data: Read the CSV file located at the specified path into a data frame called 'dat'
+dat <- read.csv("C:/Users/crossett/Desktop/dat.csv")
+head(dat)  # Display the first few rows of the data to check the import
+# View(dat)  # Uncomment to view the entire data frame in a spreadsheet-like format
+# colnames(dat)  # Uncomment to display the column names of the data frame
+View(dat)
+# Select columns from 'Camera.Name' to 'X6.26', then reshape the data from wide to long format
+# Filter rows where the 'value' column equals 1 (indicating active days)
+active.days <- dat %>%
+select(Camera.Name:X6.26) %>%  # Select relevant columns
+pivot_longer(cols = X2.22:X6.26) %>%  # Convert wide format to long format
+filter(value == 1)  # Keep only rows where 'value' is 1
+# Rename columns for clarity
+active.days <-
+active.days %>% rename(
+Dates = name,  # Rename 'name' column to 'Dates'
+Active.day = value)  # Rename 'value' column to 'Active.day'
+# Change the date format in the 'Dates' column
+active.days <- active.days %>%
+mutate(Dates = gsub("^X(\\d+)\\.(\\d+)$", "2024\\1\\2", Dates))  # Convert 'XMM.DD' to '2024MMDD'
+active.days <- active.days %>%
+mutate(Dates = gsub("^(2024)(\\d)(\\d{2})$", "\\10\\2\\3", Dates))  # Ensure dates are in '2024MMDD' format
+View(active.days)
+write.csv(output,file="active.days.csv")
+write.csv(active.days,file="active.days.csv")
