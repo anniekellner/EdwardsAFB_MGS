@@ -17,6 +17,7 @@ library(MuMIn)
 library(sf)
 library(tmap)
 library(tmaptools)
+library(viridisLite)
 
 ```
 
@@ -26,6 +27,8 @@ library(tmaptools)
 umf1 <- readRDS("./Data/UMFs/umf_independentCams_adults.Rds")
 
 finalUMF <- readRDS("./Data/UMFs/finalUMF_05292025.Rds")
+
+
 
 ```
 
@@ -106,4 +109,45 @@ model_comparison <- model_comparison[order(model_comparison$AICc),]
 model_comparison
 
 ```
+
+## Detection and Occupancy Probabilities
+
+I am providing means and ranges for occupancy and detection probabilities across all sites and throughout the study duration.
+
+Next I will provide site-specific occupancy probability through an interactive map as well as a plot of detection probability over time. 
+
+
+```{r}
+
+occuProbs <- predict(m3, type = "state")
+detProbs <- predict(m3, type = "det")
+
+cat("Mean Occupancy Probability:", mean(occuProbs$Predicted), "\n") 
+cat("Range of Occupancy Probability:", range(occuProbs$Predicted), "\n")
+
+cat("Mean Detection Probability:", mean(detProbs$Predicted), "\n")
+cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
+
+```
+
+
+## Interactive Map
+
+```{r}
+
+## Load and prep data
+
+streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # streams shp
+
+cams <- st_read("./Results/indCameras_spatial.shp") # spatial object - independent cams; updated coords
+
+
+
+
+
+
+
+```
+
+
 
