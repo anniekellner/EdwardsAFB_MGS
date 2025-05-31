@@ -8,11 +8,13 @@ library(sf)
 library(viridisLite)
 
 
-# Load River data
+# Load data
 
-streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp")
+streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # river shp
 
-indCams <- adults_only_ind_cams
+indCamsSF <- st_read("./Results/indCameras_spatial.shp") # cameras shp (independent)
+
+camsDF <- readRDS("./Data/Spatial/Derived/independentCams_DF_dist2stream.Rds") # DF with new coords and dist vals
 
 
 
@@ -21,10 +23,18 @@ indCams <- adults_only_ind_cams
 indCams[53,] # AFRL-NW-05
 indCams[107,] # HQA-38-03
 
-indCams <- indCams %>%
-  filter(!(Camera_Name == "AFRL-NW-05" | 
-              Camera_Name == "HQA-38-03"))
+indCamsSF <- indCamsSF %>%
+  filter(!(CamerNm == "AFRL-NW-05" | 
+              CamerNm == "HQA-38-03"))
 
+camsDF <- camsDF %>%
+  filter(!(CameraName == "AFRL-NW-05" | 
+             CameraName == "HQA-38-03"))
+
+camsDF <- camsDF %>%
+  mutate(dist_numeric = as.numeric(Dist_to_Stream))
+
+all.equal(indCamsSF$Dst_t_S, camsDF$dist_numeric)
 occuProbs <- bind_cols(indCams, all_adults_pred_occu)
 
 occuProbs <- occuProbs %>%
