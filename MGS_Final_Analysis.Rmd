@@ -65,6 +65,7 @@ m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
 
 ```
 
+
 ## Model 4: No detection trend; Occupancy Trend (distance to stream)
 
 ```{r}
@@ -110,6 +111,23 @@ model_comparison
 
 ```
 
+## Scaling Distance to Stream
+
+```{r}
+
+# load scaled UMF
+
+scaledUMF <- readRDS("./Data/UMFs/umf_adultsOnly_indCams_streamsOnly_allScaled.Rds")
+
+
+m3scaled <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
+           data = scaledUMF,
+           linkPsi = "logit")
+
+```
+
+
+
 ## Detection and Occupancy Probabilities
 
 I am providing means and ranges for occupancy and detection probabilities across all sites and throughout the study duration.
@@ -117,7 +135,7 @@ I am providing means and ranges for occupancy and detection probabilities across
 Next I will provide site-specific occupancy probability through an interactive map as well as a plot of detection probability over time. 
 
 
-```{r}
+```{r m3-unscaledStreams}
 
 occuProbs <- predict(m3, type = "state")
 detProbs <- predict(m3, type = "det")
@@ -130,6 +148,21 @@ cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
 
 ```
 
+```{r m3-scaled}
+
+occuProbs <- predict(m3scaled, type = "state")
+detProbs <- predict(m3scaled, type = "det")
+
+cat("Mean Occupancy Probability:", mean(occuProbs$Predicted), "\n") 
+cat("Range of Occupancy Probability:", range(occuProbs$Predicted), "\n")
+
+cat("Mean Detection Probability:", mean(detProbs$Predicted), "\n")
+cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
+
+
+
+```
+
 
 ## Interactive Map
 
@@ -137,9 +170,34 @@ cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
 
 ## Load and prep data
 
-streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # streams shp
+site_info <- scaledUMF@obsCovs
 
-cams <- st_read("./Results/indCameras_spatial.shp") # spatial object - independent cams; updated coords
+
+
+# Load data
+
+streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # river shp
+indCams <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds") # to exclude non-independent cams
+camCoords <- readRDS("./Data/Spatial/camCoords_withEnv_05262025.Rds")
+
+# Remove non-independent cameras and cameras without data
+
+indCams[53,] # AFRL-NW-05 - no data
+indCams[107,] # HQA-38-03 - no data
+
+indCams <- indCams %>%
+  filter(!(Camera_Name == "AFRL-NW-05" | 
+              Camera_Name == "HQA-38-03"))
+
+indCamNames <- indCams$Camera_Name
+
+camCoordsInd <- camCoords %>%
+  filter(Camera_Name %in% indCamNames) %>%
+  
+
+
+
+
 
 
 
