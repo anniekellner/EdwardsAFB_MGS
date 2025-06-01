@@ -61,7 +61,8 @@ scDist <- scale(adults_only_ind_cams$Dist_to_Stream)
 
 siteCovs <- data.frame(
   #Habitat_Class = adults_only_ind_cams$Raster_Habitat_Class,
-  Dist_to_Stream = scDist
+  Dist_to_Stream = scDist,
+  
 )
 
 umf_adultsOnly_indCams_streamsOnly_allScaled <- unmarkedFrameOccu(
