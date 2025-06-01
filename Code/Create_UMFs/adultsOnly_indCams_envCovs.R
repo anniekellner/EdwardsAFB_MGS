@@ -11,9 +11,19 @@ library(tidyverse)
 ## Dataframes: envCovs & adultsOnly detection DF
 
 envCams <- readRDS("./Data/Spatial/camCoords_withEnv.Rds")
-adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
-envCams <- rename(envCams, "Camera_Name" = `Camera Trap Name`)
+envCams <- envCams %>%
+  rename("Camera_Name" = `Camera Trap Name`) %>%
+  select(Camera_Name, 
+         `Study Site`, 
+         `Trap Name`, 
+         Assigned_Longitude, 
+         Assigned_Latitude,
+         Raster_Habitat_Class,
+         shp_Habitat_Class,
+         Dist_to_Stream)
+
+adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
 # Join
 
@@ -60,15 +70,15 @@ obsCovs <- list(
 scDist <- scale(adults_only_ind_cams$Dist_to_Stream)
 
 siteCovs <- data.frame(
-  #Habitat_Class = adults_only_ind_cams$Raster_Habitat_Class,
-  Dist_to_Stream = scDist,
-  
+  Dist_to_Stream = adults_only_ind_cams$Dist_to_Stream, # included for mapping
+  Dist_Scaled = scDist, # for modeling
+  Camera_Name = adults_only_ind_cams$Camera_Name # for ensuring camera-dist association
 )
 
-umf_adultsOnly_indCams_streamsOnly_allScaled <- unmarkedFrameOccu(
+umf_FINAL <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_adultsOnly_indCams_streamsOnly_allScaled, file = "./Data/UMFs/umf_adultsOnly_indCams_streamsOnly_allScaled.Rds")
+#saveRDS(umf_FINAL, file = "./Data/UMFs/umf_FINAL_06012025.Rds")
