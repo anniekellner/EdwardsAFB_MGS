@@ -6,9 +6,19 @@ library(tidyverse)
 library(unmarked)
 
 
-##  ----  LOAD DATA   ----  ##
+##    ----  VIGNETTE EXAMPLE    ----    ##
 
 wt <- read.csv(system.file("csv","widewt.csv", package="unmarked"))
+y_vignette <- wt[,2:4]
+siteCovs_vignette <-  wt[,c("elev", "forest", "length")]
+obsCovs_vignette <- list(date=wt[,c("date.1", "date.2", "date.3")],
+                ivel=wt[,c("ivel.1",  "ivel.2", "ivel.3")])
+wt <- unmarkedFrameOccu(y = y_vignette, siteCovs = siteCovs_vignette, obsCovs = obsCovs_vignette)
+summary(wt)
+
+
+
+
 
 val <- allspecies.zerofilled
 head(val)
@@ -23,6 +33,13 @@ species$julian <- julian(species$Date)
 
 species01 <- species %>% select(-Date,-days.since.rebait) %>% group_by(RelativePath) %>% 
   pivot_wider(names_from = julian,values_from = thespp)
+
+dsr <- species %>% select(-Date,-thespp) %>% group_by(RelativePath) %>% 
+  pivot_wider(names_from = julian,values_from = days.since.rebait) %>% ungroup() %>% select(-RelativePath) 
+
+julian <- species %>% select(-Date,-thespp,-days.since.rebait) %>% group_by(RelativePath) %>% 
+  pivot_wider(names_from = julian,values_from = julian) %>% ungroup() %>% select(-RelativePath) 
+
 
 #FUNCTION
 umf1spp <- function(allspecies.zerofilled, spp){
@@ -47,25 +64,23 @@ umf1spp <- function(allspecies.zerofilled, spp){
   julian <- species %>% select(-Date,-thespp,-days.since.rebait) %>% group_by(RelativePath) %>% 
     pivot_wider(names_from = julian,values_from = julian) %>% ungroup() %>% select(-RelativePath) 
   
-  julian <- species %>% select(-Date,-thespp,-days.since.rebait) %>% group_by(RelativePath) %>% 
-    pivot_wider(names_from = julian,values_from = julian) %>% ungroup() %>% select(-RelativePath) #%>%
   
   ##obsCovs
-  obsCovs <- list(day =julian,days.since.rebait = dsr)
+  obsCovs_Val <- list(day =julian,days.since.rebait = dsr)
   
   ###siteCovs:
   #camera
   camera <- unique(species$RelativePath)
   #lure:
   lure <- substr(camera,start=(nchar(camera)-1),stop=nchar(camera))
-  siteCovs <- cbind.data.frame(camera=camera,lure=lure)
+  siteCovs_Val <- cbind.data.frame(camera=camera,lure=lure)
   #landcover
   siteCovs <- merge(siteCovs,landcover,by.x="camera",by.y="Camera Name",all.x=T,all.y=F)
   
   ###y
   y <- species01[,2:ncol(species01)]
   
-  umf <- unmarkedFrameOccu(y=y,siteCovs = siteCovs,obsCovs=obsCovs)
+  umf_Val <- unmarkedFrameOccu(y=y_Val,siteCovs = siteCovs_Val,obsCovs=obsCovs_Val)
   #umf@obsCovs$day <- scale(umf@obsCovs$day)
   
   return(umf)
