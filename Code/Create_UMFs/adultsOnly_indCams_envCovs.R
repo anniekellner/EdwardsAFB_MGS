@@ -36,7 +36,29 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
   rename_with(~paste0(., "/2024"), 2:111)
 
 
+
+saveRDS(adults_only_ind_cams, "./Data/indCams_adults_envCovs_ordinalDateCols_06012025.Rds")
+
+
 ##    ----      CREATE UMF  ----    ##
+
+# Create y
+
+y_AK <- adults_only_ind_cams[,2:111]  # 0/1 observations
+
+# Site Covs
+
+scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
+
+adults_only_ind_cams$DistScaled <- scDist
+
+
+siteCovs_AK <- data.frame(
+  Dist_to_Stream = as.numeric(adults_only_ind_cams$Dist_to_Stream), # included for mapping
+  Dist_Scaled = scDist, # scaled data used for model
+  Camera_Name = adults_only_ind_cams$Camera_Name # for ensuring camera-dist association
+)
+
 
 # ObsCovs
 
@@ -45,40 +67,29 @@ dates <- mdy(dates)
 
 # Ordinal Dates
 ordinal <- yday(dates)
-scOrdinal <- scale(ordinal)
+scOrdinal <- as.vector(scale(ordinal))
 
-# Create y
 
-y <- as.matrix(adults_only_ind_cams[,c(2:111)]) # 0/1 observations
 
 # obsCovs
 
-obsCovs <- list(
+obsCovs_AK <- obsCovs <- list(
   scOrdinal = matrix(scOrdinal, 
-                     nrow = nrow(y), 
-                     ncol = ncol(y), 
+                     nrow = nrow(y_AK), 
+                     ncol = ncol(y_AK), 
                      byrow = TRUE),
   scOrdinal2 = matrix(scOrdinal^2, 
-                      nrow = nrow(y),
-                      ncol = ncol(y),
+                      nrow = nrow(y_AK),
+                      ncol = ncol(y_AK),
                       byrow = TRUE))
 
-# Site Covs
 
-# Scale Distance to Stream
-
-scDist <- scale(adults_only_ind_cams$Dist_to_Stream)
-
-siteCovs <- data.frame(
-  Dist_to_Stream = adults_only_ind_cams$Dist_to_Stream, # included for mapping
-  Dist_Scaled = scDist, # for modeling
-  Camera_Name = adults_only_ind_cams$Camera_Name # for ensuring camera-dist association
+umf_AK <- unmarkedFrameOccu(
+  y = y_AK,
+  siteCovs = siteCovs_AK,
+  obsCovs = obsCovs_AK
 )
 
-umf_FINAL <- unmarkedFrameOccu(
-  y = y,
-  siteCovs = siteCovs,
-  obsCovs = obsCovs
-)
-
-#saveRDS(umf_FINAL, file = "./Data/UMFs/umf_FINAL_06012025.Rds")
+#saveRDS(umf_AK, file = "./Data/UMFs/umf_CORRECT_06022025.Rds")
+glimpse(adults_only_ind_cams)
+#saveRDS(adults_only_ind_cams, file = "./Data/indCams_adults_envCovs_06022025.Rds")
