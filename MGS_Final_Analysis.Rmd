@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
-```{r load-libraries}
+```{r load-libraries, message=FALSE, warning=FALSE, include=FALSE}
 
 library(tidyverse)
 library(unmarked)
@@ -24,11 +24,9 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf1 <- readRDS("./Data/UMFs/umf_independentCams_adults.Rds")
+finalUMF <- readRDS("./Data/UMFs/umf_CORRECT_06022025.Rds")
 
-finalUMF <- readRDS("./Data/UMFs/finalUMF_05292025.Rds")
-
-
+finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
 ```
 
@@ -36,10 +34,10 @@ finalUMF <- readRDS("./Data/UMFs/finalUMF_05292025.Rds")
 
 ## Model 1: Intercept-Only
 
-```{r intercept-only}
+```{r intercept-only, warning=FALSE}
 
 m1 <- occu(~ 1 ~ 1,
-           data = umf1,
+           data = finalUMF,
            linkPsi = "logit")
 
 ```
@@ -47,19 +45,19 @@ m1 <- occu(~ 1 ~ 1,
 
 ## Model 2: Detection Trend Only (date terms: linear + quadratic)
 
-```{r det-trend-only}
+```{r det-trend-only, warning=FALSE}
 
 m2 <- occu(~ scOrdinal + scOrdinal2 ~ 1,
-           data = umf1,
+           data = finalUMF,
            linkPsi = "logit")
 ```
 
 
 ## Model 3: Detection Trend (date terms) + Occupancy Trend (distance to stream)
 
-```{r all-trends}
+```{r all-trends, warning=FALSE}
 
-m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
+m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_Scaled,
            data = finalUMF,
            linkPsi = "logit")
 
@@ -68,11 +66,22 @@ m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
 
 ## Model 4: No detection trend; Occupancy Trend (distance to stream)
 
-```{r}
+```{r warning=FALSE}
 
-m4 <- occu(~ 1 ~ Dist_to_Stream,
+m4 <- occu(~ 1 ~ Dist_Scaled,
            data = finalUMF,
            linkPsi = "logit")
+
+```
+
+
+## Model 5: Linear Detection trend only; Occupancy Trend (distance to streams)
+
+```{r}
+
+m5 <- occu(~scOrdinal ~ Dist_Scaled,
+           data = finalUMF)
+
 
 ```
 
@@ -85,7 +94,8 @@ model_list <- list(
   "Intercept-Only" = m1,
   "Detection_Trend_Only" = m2,
   "Detection_and_Occupancy_Covs" = m3,
-  "Occupancy_Cov_only" = m4
+  "Occupancy_Cov_only" = m4,
+  "No_Quadratic_Term" = m5
 )
 
 
@@ -111,57 +121,107 @@ model_comparison
 
 ```
 
-## Scaling Distance to Stream
 
-```{r}
+## Detection and Occupancy Probabilities
 
-# load scaled UMF
-
-scaledUMF <- readRDS("./Data/UMFs/umf_adultsOnly_indCams_streamsOnly_allScaled.Rds")
+The following are means and ranges for occupancy and detection probabilities across all sites and throughout the study duration. 
 
 
-m3scaled <- occu(~ scOrdinal + scOrdinal2 ~ Dist_to_Stream,
-           data = scaledUMF,
-           linkPsi = "logit")
+```{r top-model-probabilities, warning=FALSE}
+
+occuProbs <- predict(m5, type = "state")
+detProbs <- predict(m5, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits = 3), "\n")
+
+```
+
+## Detection Probability Over Time
+
+```{r plot-detection-prob}
+
+# Create dataframe with detProbs and dates
+
+detProbDF <- data.frame(
+  "Date" = colnames(finalDF[,2:111]),
+  "Detection_Prob" = detProbs$Predicted
+)
+
+detProbDF$Date <- mdy(detProbDF$Date)
+
+ggplot(detProbDF, aes(x = Date, y = Detection_Prob)) + 
+  geom_point() + 
+  geom_line() + 
+  scale_x_date(date_breaks = "5 days",
+               date_labels = "%m/%d") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Date", y = "Detection Probability")
+
+
+```
+
+## Actual captures over time
+
+```{r plot-captures-over-time}
+
+counts <- finalDF %>%
+  summarize(across(2:111, sum, na.rm = TRUE))
+
+counts_long <- counts %>%
+  pivot_longer(everything(),
+               names_to = "Date",
+               values_to = "Total_Detections") 
+
+counts_long <- counts_long %>% mutate(Date = mdy(Date))
+
+
+# Plot Count Data
+
+ggplot(counts_long, aes(x = Date, y = Total_Detections)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = "Date",
+       y = "Number of Detections",
+       title = "Daily Detection Counts") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "5 days",  # Show every 5 days
+               date_labels = "%m/%d")    # Format as month/day
+
 
 ```
 
 
+## Detection Probability over time for M3
 
-## Detection and Occupancy Probabilities
-
-I am providing means and ranges for occupancy and detection probabilities across all sites and throughout the study duration.
-
-Next I will provide site-specific occupancy probability through an interactive map as well as a plot of detection probability over time. 
-
-
-```{r m3-unscaledStreams}
+```{r}
 
 occuProbs <- predict(m3, type = "state")
 detProbs <- predict(m3, type = "det")
 
-cat("Mean Occupancy Probability:", mean(occuProbs$Predicted), "\n") 
-cat("Range of Occupancy Probability:", range(occuProbs$Predicted), "\n")
+head(counts_long)
+tail(counts_long)
 
-cat("Mean Detection Probability:", mean(detProbs$Predicted), "\n")
-cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
-
-```
-
-```{r m3-scaled}
-
-occuProbs <- predict(m3scaled, type = "state")
-detProbs <- predict(m3scaled, type = "det")
-
-cat("Mean Occupancy Probability:", mean(occuProbs$Predicted), "\n") 
-cat("Range of Occupancy Probability:", range(occuProbs$Predicted), "\n")
-
-cat("Mean Detection Probability:", mean(detProbs$Predicted), "\n")
-cat("Range in Detection Probability:", range(detProbs$Predicted), "\n")
 
 
 
 ```
+
+```{r}
+
+
+
+
+
+```
+
+
+
+
 
 
 ## Interactive Map
