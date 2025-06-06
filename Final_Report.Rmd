@@ -1,0 +1,108 @@
+---
+title: "MGS_FinalReport"
+author: "Annie Kellner"
+date: "2025-06-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-packages, message=FALSE, warning=FALSE, include=FALSE}
+
+library(tidyverse)
+library(unmarked)
+library(kableExtra)
+library(tmap)
+library(tmaptools)
+
+```
+
+
+```{r load-data}
+
+umf_FINAL <- readRDS("./Data/UMFs/umf_FINAL_06012025.Rds") # df in form required for u{unmarked}
+
+df <- readRDS("./Data/indCams_adults_envCovs_06012025.Rds")
+
+```
+
+### Top Model
+
+  - Detection Covs: date terms (linear and quadratic terms on ordinal date)
+  - Occupancy Cov: distance to stream
+
+*Note: all variables have been scaled for better model convergence*
+
+```{r model, warning=FALSE}
+
+top <- occu(~ scOrdinal + scOrdinal2 ~ Dist_Scaled,
+           data = umf_FINAL,
+           linkPsi = "logit")
+
+```
+
+Means and Ranges of Occupancy & Detection Probabilities for Top Model
+
+```{r get-probs, warning=FALSE}
+
+occuProbs <- predict(top, type = "state")
+detProbs <- predict(top, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted), digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits = 3), "\n")
+```
+
+Here is a summary of the coefficients outputted by the model. 
+
+```{r model-summary, include=FALSE}
+
+# Get the summary
+
+summary <- summary(top)
+
+# Create data frame with coefficients and their statistics
+
+coef_table <- coef_table %>%
+  mutate(P...z.. = case_when(
+    P...z.. <= 0.
+  ))
+
+coef_table <- data.frame(
+  Parameter = c("Occupancy Intercept", "Distance to Stream", 
+                "Detection Intercept", "Ordinal Date", "Ordinal Date²"),
+  Estimate = c(summary$state$Estimate, summary$det$Estimate),
+  SE = c(summary$state$SE, summary$det$SE),
+  z = c(summary$state$z, summary$det$z),
+  `P(>|z|)` = c(summary$state$`P(>|z|)`, summary$det$`P(>|z|)`)
+)
+
+
+# Create a nice table
+kbl(coef_table, digits = 3, caption = "Coefficient Estimates from Top Model") %>%
+  kable_classic()
+
+  
+  
+             
+             caption = "Coefficient Estimates from Top Model",
+             format.args = list(scientific = TRUE, digits = 2)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>%
+  row_spec(0, bold = TRUE)  # Makes header row bold
+
+
+
+```
+
+```{r}
+
+
+
+
+```
+
