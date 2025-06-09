@@ -37,14 +37,24 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
 
 
 
-saveRDS(adults_only_ind_cams, "./Data/indCams_adults_envCovs_ordinalDateCols_06012025.Rds")
+#saveRDS(adults_only_ind_cams, "./Data/indCams_adults_envCovs_ordinalDateCols_06012025.Rds")
 
 
 ##    ----      CREATE UMF  ----    ##
 
 # Create y
 
-y_AK <- adults_only_ind_cams[,2:111]  # 0/1 observations
+y <- adults_only_ind_cams[,2:111]  # 0/1 observations
+
+# Weighted Detection Probability Matrix
+
+weights_matrix <- matrix(gaussian_weights,
+                         nrow = nrow(y),
+                         ncol = ncol(y),
+                         byrow = TRUE)
+
+#saveRDS(weights_matrix, file = "./Data/Detection/detection_weights_matrix.Rds")
+
 
 # Site Covs
 
