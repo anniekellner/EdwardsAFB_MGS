@@ -45,7 +45,8 @@ dateDF <- dateDF %>% # categorical classification system for parabolic detection
          scaled_ordinal,
          scaled_ordinal_squared,
          recentered_date, 
-         recentered_date_squared)
+         recentered_date_squared,
+         season)
 
 
 
@@ -109,7 +110,12 @@ obsCovs <- list(
   recentered_date_squared = matrix(dateDF$recentered_date_squared,
                                    nrow = nrow(y),
                                    ncol = ncol(y),
-                                   byrow = TRUE))
+                                   byrow = TRUE),
+  season = matrix(dateDF$season,
+                  nrow = nrow(y),
+                  ncol = ncol(y),
+                  byrow = TRUE))
+
   
   
 
