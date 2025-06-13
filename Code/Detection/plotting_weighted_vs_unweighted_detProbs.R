@@ -32,3 +32,27 @@ ggplot(detProbDF, aes(x = Date, y = Detection_Prob)) +
 
 # Weighted
 
+ord_dates <- yday(detProbDF$Date)
+
+center <- 144
+sigma <- 15
+weights <- exp(-(ord_dates - center)^2 / (2 * sigma^2))
+
+detProbDF$weight <- weights
+
+detProbDF$weighted_p <- detProbDF$Detection_Prob*detProbDF$weight
+
+
+# Plot
+
+ggplot(detProbDF, aes(x = Date, y = weighted_p)) + 
+  geom_point() + 
+  geom_line() + 
+  scale_x_date(date_breaks = "5 days",
+               date_labels = "%m/%d") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Date", y = "Detection Probability")
+
+
+
