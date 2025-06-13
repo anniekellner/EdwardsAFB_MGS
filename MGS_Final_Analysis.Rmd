@@ -24,15 +24,13 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("./Data/UMFs/recentered_dates_06062025.Rds")
+umf <- readRDS("./Data/UMFs/umf_CORRECT_06022025.Rds")
 
 finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
-gaussian_weights <- readRDS("./Data/Detection/Derived/gaussian_weights.Rds")
+weights_matrix <- readRDS("./Data/Detection/detection_weights_matrix.Rds")
 
 ```
-
-
 
 ## Model 1: Intercept-Only
 
@@ -45,17 +43,39 @@ m1 <- occu(~ 1 ~ 1,
 ```
 
 
-## Model 2: Detection Trend Only (date terms: linear + quadratic)
+## Model 2: Detection Trend Only (date terms: linear + quadratic); unweighted
 
-```{r det-trend-only, warning=FALSE}
+```{r det-trend-only-linear-quadratic-unweighted, warning=FALSE}
 
 m2 <- occu(~ scOrdinal + scOrdinal2 ~ 1,
            data = umf,
            linkPsi = "logit")
 ```
 
+## Model 3: Detection Trend Only - linear term only, unweighted
 
-## Model 3: Detection Trend (date terms) + Occupancy Trend (distance to stream)
+```{r det-trend-only-linear-unweighted}
+
+m3 <- occu(~ scOrdinal ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 4: Detection Trend Only, Linear term only, weighted
+
+```{r det-trend-only-linear-weighted}
+
+m4 <- occu(~ scOrdinal ~ 1,
+           data = umf,
+           )
+
+```
+
+
+
+## Model 3: Detection Trend Only (date terms) + Occupancy Trend (distance to stream)
 
 ```{r all-trends, warning=FALSE}
 
@@ -86,6 +106,9 @@ m5 <- occu(~scOrdinal ~ Dist_Scaled,
 
 
 ```
+
+
+
 
 
 ## AIC Analysis
