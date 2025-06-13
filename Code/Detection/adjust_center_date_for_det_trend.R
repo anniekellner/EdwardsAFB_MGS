@@ -37,6 +37,8 @@ date_df <- data.frame(
   scaled_date_squared = scaled_dates_squared
 )
 
+#saveRDS(date_df, file = "./Data/Detection/Derived/date_df.Rds")
+
 # Plot 1: Original dates vs ordinal dates
 plot(dates, ord, type = "l", 
      main = "Original Dates vs Ordinal Dates",
