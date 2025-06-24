@@ -20,6 +20,15 @@ library(MuMIn)
 ```
 
 
+```{r load-data}
+
+umf <- readRDS("./Data/UMFs/recentered_dates_06062025.Rds")
+
+
+```
+
+
+
 *All models use adults and independent cameras only*
 *All models use date terms as detection covariates*
 
