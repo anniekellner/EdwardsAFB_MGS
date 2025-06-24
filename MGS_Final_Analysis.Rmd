@@ -35,93 +35,79 @@ finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
 ```{r intercept-only, warning=FALSE}
 
-m1 <- occu(~ 1 ~ 1,
+m1_intercept <- occu(~ 1 ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 2: Detection Trend Only (date terms: linear + quadratic); unweighted
+## Model 2
+  - Detection trend only (no occupancy)
+    - Linear date term only (scaled)
 
-```{r det-trend-only-linear-quadratic-unweighted, warning=FALSE}
+```{r det-trend-only-linear-scaled, warning=FALSE}
 
-m2 <- occu(~ scOrdinal + scOrdinal2 ~ 1,
+m2 <- occu(~ scaled_ordinal ~ 1,
            data = umf,
            linkPsi = "logit")
 ```
 
-## Model 3: Detection Trend Only - linear term only, unweighted
+## Model 3
+  - Detection trend only
+    - Linear date term (recentered)
 
-```{r det-trend-only-linear-unweighted}
+```{r det-trend-only-linear-recentered}
 
-m3 <- occu(~ scOrdinal ~ 1,
+m3 <- occu(~ recentered_date ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 4: Detection Trend Only, Linear term only, weighted
+## Model 4
+  - Detection Trend Only
+    - Linear + Quadratic (scaled)
 
-```{r det-trend-only-linear-weighted}
+```{r det-trend-only-linear-quadratic-scaled}
 
-m4 <- occu(~ scOrdinal ~ 1,
+m4 <- occu(~ scaled_ordinal + scaled_ord_squared ~ 1,
            data = umf,
+           linkPsi = "logit"
            )
 
 ```
 
 
+## Model 5
+  - Detection Trend Only
+  - Linear + Quadratic (recentered)
 
-## Model 3: Detection Trend Only (date terms) + Occupancy Trend (distance to stream)
+```{r det-trend-linear-quadratic-recentered, warning=FALSE}
 
-```{r all-trends, warning=FALSE}
-
-m3 <- occu(~ scOrdinal + scOrdinal2 ~ Dist_Scaled,
+m5 <- occu(~ recentered_date + recentered_date_squared ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 4: No detection trend; Occupancy Trend (distance to stream)
+# AIC on Detection Trend
 
-```{r warning=FALSE}
+This AIC analysis is *only* looking at detection trends. It does not include any covariates for occupancy (i.e., environmental covariates)
 
-m4 <- occu(~ 1 ~ Dist_Scaled,
-           data = umf,
-           linkPsi = "logit")
+Note: All models called "Quadratic" also include the linear term
 
-```
-
-
-## Model 5: Linear Detection trend only; Occupancy Trend (distance to streams)
-
-```{r}
-
-m5 <- occu(~scOrdinal ~ Dist_Scaled,
-           data = umf)
-
-
-```
-
-
-
-
-
-## AIC Analysis
-
-```{r}
+```{r det-trend-AIC}
 
 model_list <- list(
   "Intercept-Only" = m1,
-  "Detection_Trend_Only" = m2,
-  "Detection_and_Occupancy_Covs" = m3,
-  "Occupancy_Cov_only" = m4,
-  "No_Quadratic_Term" = m5
+  "Linear_Scaled" = m2,
+  "Linear_Recentered" = m3,
+  "Quadratic_Scaled" = m4,
+  "Quadratic_Recentered" = m5
 )
-
 
 # Calculate AICc for each model
 
@@ -145,6 +131,72 @@ model_comparison
 
 ```
 
+It appears recentering the dates is the better approach. I am going to run another model selection on detection trend using recentered dates, but include a categorical variable for 'season' (early, peak, late). This is my final attempt to capture the parabolic detection trend.
+
+
+
+## Model 6
+  - Detection trend only
+  - Linear Recentered Dates
+  - Season
+
+```{r warning=FALSE}
+
+m6 <- occu(~ recentered_date + season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 7: Linear Detection trend only; Occupancy Trend (distance to streams)
+
+```{r}
+
+m7 <- occu(~ recentered_date + recentered_date_squared + season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+
+## AIC Analysis
+
+```{r}
+
+model_list <- list(
+  "Intercept-Only" = m1,
+  "Linear_Recentered" = m3,
+  "Quadratic_Recentered" = m5,
+  "Linear_Season" = m6,
+  "Quadratic_Season" = m7
+)
+  
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+
+```
+
+Dang!!! It worked!!!! 
 
 ## Detection and Occupancy Probabilities
 
