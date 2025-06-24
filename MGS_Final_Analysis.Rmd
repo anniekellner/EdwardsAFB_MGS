@@ -35,7 +35,7 @@ finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
 ```{r intercept-only, warning=FALSE}
 
-m1_intercept <- occu(~ 1 ~ 1,
+m1 <- occu(~ 1 ~ 1,
            data = umf,
            linkPsi = "logit")
 
@@ -149,7 +149,10 @@ m6 <- occu(~ recentered_date + season ~ 1,
 ```
 
 
-## Model 7: Linear Detection trend only; Occupancy Trend (distance to streams)
+## Model 7
+  - Detection Trend Only
+  - Quadratic Date Term (recentered)
+  - Season Classification
 
 ```{r}
 
@@ -198,15 +201,89 @@ model_comparison
 
 Dang!!! It worked!!!! 
 
-## Detection and Occupancy Probabilities
+## MODEL 8
+  - Occupancy Covariate only
+  
+```{r occupancy-only}
+
+m8 <- occu(~ 1 ~ Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## MODEL 9
+  - Detection covs: Quadratic trend on recentered dates + Season
+  - Occupancy covs: Distance to Stream (scaled)
+  
+```{r quadratic-recentered-dist-to-stream}
+
+m9 <- occu(~ recentered_date + recentered_date_squared + season ~ Dist_Scaled,
+             data = umf,
+             linkPsi = "logit")
+
+```
+
+
+## MODEL 10
+
+```{r Quadratic-Distance}
+
+m10 <- occu(~ recentered_date + recentered_date_squared ~ Dist_Scaled,
+            data = umf,
+            linkPsi = "logit")
+
+
+
+```
+
+
+# AIC
+
+
+```{r}
+
+model_list <- list(
+  "Intercept-Only" = m1,
+  "Linear_Recentered" = m3,
+  "Quadratic_Recentered" = m5,
+  "Linear_Season" = m6,
+  "Quadratic_Season" = m7,
+  "Distance-Only" = m8,
+  "Quad_Season_Distance" = m9,
+  "Quad_Distance" = m10
+)
+
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+
+```
 
 The following are means and ranges for occupancy and detection probabilities across all sites and throughout the study duration. 
 
-
 ```{r top-model-probabilities, warning=FALSE}
 
-occuProbs <- predict(m5, type = "state")
-detProbs <- predict(m5, type = "det")
+occuProbs <- predict(m9, type = "state")
+detProbs <- predict(m9, type = "det")
 
 cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted),digits = 3), "\n") 
 cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")
@@ -272,33 +349,6 @@ ggplot(counts_long, aes(x = Date, y = Total_Detections)) +
 ```
 
 
-## Detection Probability over time for M3
-
-```{r}
-
-occuProbs <- predict(m3, type = "state")
-detProbs <- predict(m3, type = "det")
-
-head(counts_long)
-tail(counts_long)
-
-
-
-
-```
-
-```{r}
-
-
-
-
-
-```
-
-
-
-
-
 
 ## Interactive Map
 
@@ -306,8 +356,7 @@ tail(counts_long)
 
 ## Load and prep data
 
-site_info <- scaledUMF@obsCovs
-
+#site_info <- scaledUMF@obsCovs
 
 
 # Load data
