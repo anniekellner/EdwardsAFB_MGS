@@ -24,13 +24,10 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("./Data/UMFs/umf_CORRECT_06022025.Rds")
-
-umf_recentered <- readRDS("~/Repos/MGS/Data/UMFs/recentered_dates_06062025.Rds") # this is a umf
+umf <- readRDS("./Data/UMFs/umf_allDateCols_06122025.Rds")
 
 finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
-weights_matrix <- readRDS("./Data/Detection/detection_weights_matrix.Rds")
 
 ```
 
