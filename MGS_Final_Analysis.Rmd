@@ -170,7 +170,16 @@ m7 <- occu(~ recentered_date + recentered_date_squared + season ~ 1,
 
 ```
 
+## Model 8
+  - Season Only
+  
+```{r}
 
+m8 <- occu(~ season ~ 1,
+           data = umf, 
+           linkPsi = "logit")
+```
+  
 
 ## AIC Analysis
 
@@ -180,10 +189,13 @@ model_list <- list(
   "Intercept-Only" = m1,
   "Linear_Recentered" = m3,
   "Quadratic_Recentered" = m5,
+  "Season Only" = m8,
   "Linear_Season" = m6,
-  "Quadratic_Season" = m7
-)
+  "Quadratic_Season" = m7,
   
+  
+)
+ 
 
 # Calculate AICc for each model
 
@@ -209,41 +221,61 @@ model_comparison
 
 Dang!!! It worked!!!! 
 
-## MODEL 8
+## MODEL 9
   - Occupancy Covariate only
   
 ```{r occupancy-only}
 
-m8 <- occu(~ 1 ~ Dist_Scaled,
+m9 <- occu(~ 1 ~ Dist_Scaled,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## MODEL 9
+## MODEL 10
   - Detection covs: Quadratic trend on recentered dates + Season
   - Occupancy covs: Distance to Stream (scaled)
   
 ```{r quadratic-recentered-dist-to-stream}
 
-m9 <- occu(~ recentered_date + recentered_date_squared + season ~ Dist_Scaled,
+m10 <- occu(~ recentered_date + recentered_date_squared + season ~ Dist_Scaled,
              data = umf,
              linkPsi = "logit")
 
 ```
 
 
-## MODEL 10
+## MODEL 11
 
 ```{r Quadratic-Distance}
 
-m10 <- occu(~ recentered_date + recentered_date_squared ~ Dist_Scaled,
+m11 <- occu(~ recentered_date + recentered_date_squared ~ Dist_Scaled,
             data = umf,
             linkPsi = "logit")
 
 
 
+```
+
+```{r}
+m12 <- occu(~ recentered_date ~ Dist_Scaled,
+            data = umf, 
+            linkPsi = "logit")
+```
+
+
+```{r}
+m13 <- occu(~ season ~ Dist_Scaled,
+            data = umf,
+            linkPsi = "logit")
+```
+
+
+```{r}
+m14 <- occu(~ recentered_date + season ~ Dist_Scaled,
+            data = umf,
+            linkPsi = "logit")
 ```
 
 
@@ -256,11 +288,15 @@ model_list <- list(
   "Intercept-Only" = m1,
   "Linear_Recentered" = m3,
   "Quadratic_Recentered" = m5,
+  "Season Only" = m8,
   "Linear_Season" = m6,
   "Quadratic_Season" = m7,
-  "Distance-Only" = m8,
-  "Quad_Season_Distance" = m9,
-  "Quad_Distance" = m10
+  "Distance-Only" = m9,
+  "Linear_Distance" = m12,
+  "Quad_Distance" = m11,
+  "Quad_Season_Distance" = m10,
+  "Season_Distance" = m13,
+  "Linear_Season" = m14
 )
 
 
@@ -291,8 +327,8 @@ The following are means and ranges for occupancy and detection probabilities acr
 ```{r top-model-probabilities, warning=FALSE}
 
 # Get predictions without appendData to avoid row mismatch
-occuProbs <- predict(m9, type = "state", na.rm = TRUE)
-detProbs <- predict(m9, type = "det")
+occuProbs <- predict(m10, type = "state", na.rm = TRUE)
+detProbs <- predict(m10, type = "det")
 
 cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted),digits = 3), "\n") 
 cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")

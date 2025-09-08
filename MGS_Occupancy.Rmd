@@ -72,7 +72,7 @@ kableExtra::kbl(tabCams) %>%
 
 ```{r}
 
-#umf <- readRDS('./Data/umf_05152025.Rds')
+umf <- readRDS('./Data/UMFs/umf_05152025.Rds')
 
 # Model 
   # quadratic term on ordinal date (for parabolic detection prob)
