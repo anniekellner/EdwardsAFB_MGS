@@ -411,7 +411,7 @@ finalDF_ll <- finalDF %>%
 
 # Site Info and Predictions
 
-site_info <- m9@data@siteCovs
+site_info <- m10@data@siteCovs
 
 site_info <- site_info %>%
   filter(!(Camera_Name == "AFRL-NW-05" | 
@@ -419,10 +419,18 @@ site_info <- site_info %>%
 
 occuProbsDF <- data.frame(
   site_info,
-  Predicted = occuProbs$Predicted
+  OccuProb_Estimate = occuProbs$Predicted,
+  SE = occuProbs$SE,
+  CI_Lower = occuProbs$lower,
+  CI_Upper = occuProbs$upper
    )
 
 occuProbsDF <- left_join(occuProbsDF, finalDF_ll)
+
+occuProbsDF <- occuProbsDF %>% # to export to Cole for report
+  select(Camera_Name, Assigned_Longitude, Assigned_Latitude, OccuProb_Estimate, SE, CI_Lower, CI_Upper, Dist_to_Stream)
+
+write_csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Occupancy_Results_09112025.csv")
 
 ```
 
