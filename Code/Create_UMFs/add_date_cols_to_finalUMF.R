@@ -136,5 +136,5 @@ umf_09112025 <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_09112025, file = "./Data/UMFs/umf_09112015.Rds")
+#saveRDS(umf_09112025, file = "./Data/UMFs/umf_09112025.Rds")
 
