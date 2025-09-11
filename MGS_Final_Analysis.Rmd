@@ -428,9 +428,10 @@ occuProbsDF <- data.frame(
 occuProbsDF <- left_join(occuProbsDF, finalDF_ll)
 
 occuProbsDF <- occuProbsDF %>% # to export to Cole for report
-  select(Camera_Name, Assigned_Longitude, Assigned_Latitude, OccuProb_Estimate, SE, CI_Lower, CI_Upper, Dist_to_Stream)
+  select(Camera_Name, Assigned_Longitude, Assigned_Latitude, OccuProb_Estimate, SE, CI_Lower, CI_Upper, Dist_to_Stream) %>%
+  mutate(across(where(is.numeric), ~ round(., 3)))
 
-write_csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Occupancy_Results_09112025.csv")
+#write_csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Occupancy_Results_09112025.csv")
 
 ```
 
@@ -449,7 +450,7 @@ tmap_mode('view')
 occuMap <- tm_shape(streams) + 
   tm_lines(col = "#3D5B9F") +
 tm_shape(occUTM) + 
-  tm_symbols(fill = "Predicted",
+  tm_symbols(fill = "OccuProb_Estimate",
              size = 0.5,
              popup.vars = c("Distance to Stream" = "Dist_to_Stream", 
                             "Camera Name" = "Camera_Name"),
@@ -459,6 +460,9 @@ tm_shape(occUTM) +
 
 
 #tmap_save(occuMap, filename = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/mgs_occupancy_map.html")
+
+#st_write(occUTM, "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Outputs/Occupancy_estimates_MGS_09112025.shp")
+
 
 
 ```
