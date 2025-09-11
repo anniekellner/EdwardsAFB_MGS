@@ -6,6 +6,7 @@
 # 06-12-2015
 
 library(tidyverse)
+library(unmarked)
 
 ##    ----    LOAD AND PREP DATA    ----    ##
 
@@ -48,7 +49,9 @@ dateDF <- dateDF %>% # categorical classification system for parabolic detection
          recentered_date_squared,
          season)
 
-
+dateDF <- dateDF %>%
+  mutate(scaled_recentered = scale(recentered_date)) %>%
+  mutate(scaled_recentered_squared = scale(recentered_date_squared))
 
 # Join
 
@@ -111,6 +114,14 @@ obsCovs <- list(
                                    nrow = nrow(y),
                                    ncol = ncol(y),
                                    byrow = TRUE),
+  scaled_recentered = matrix(dateDF$scaled_recentered,
+                             nrow = nrow(y),
+                             ncol = ncol(y),
+                             byrow = TRUE),
+  scaled_recentered_squared = matrix(dateDF$scaled_recentered_squared,
+                                     nrow = nrow(y),
+                                     ncol = ncol(y),
+                                     byrow = TRUE),
   season = matrix(dateDF$season,
                   nrow = nrow(y),
                   ncol = ncol(y),
@@ -119,11 +130,11 @@ obsCovs <- list(
   
   
 
-umf_dateCols <- unmarkedFrameOccu(
+umf_09112025 <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_dateCols, file = "./Data/UMFs/umf_allDateCols_06122025.Rds")
+#saveRDS(umf_09112025, file = "./Data/UMFs/umf_09112015.Rds")
 
