@@ -431,7 +431,7 @@ occuProbsDF <- occuProbsDF %>% # to export to Cole for report
   select(Camera_Name, Assigned_Longitude, Assigned_Latitude, OccuProb_Estimate, SE, CI_Lower, CI_Upper, Dist_to_Stream) %>%
   mutate(across(where(is.numeric), ~ round(., 3)))
 
-#write_csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Occupancy_Results_09112025.csv")
+write.csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Outputs/Occupancy_Results_09112025.csv", row.names = FALSE)
 
 ```
 
