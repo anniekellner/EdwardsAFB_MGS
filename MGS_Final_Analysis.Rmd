@@ -24,7 +24,7 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("./Data/UMFs/umf_allDateCols_06122025.Rds")
+umf <- readRDS("./Data/UMFs/umf_09112025.Rds")
 
 finalDF <- readRDS("./Data/indCams_adults_envCovs_06022025.Rds")
 
@@ -247,6 +247,19 @@ m10 <- occu(~ recentered_date + recentered_date_squared + season ~ Dist_Scaled,
 
 
 ## MODEL 11
+
+
+```{r scaled-recentered-dates}
+
+m11 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled,
+            data = umf,
+            linkPsi = "logit")
+
+
+```
+
+
+
 
 ```{r Quadratic-Distance}
 
