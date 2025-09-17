@@ -27,31 +27,18 @@ envCams <- envCams %>%
 
 adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
-dateDF <- readRDS("./Data/Detection/Derived/date_df.Rds")
+dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/dateDF_recentered_scaled_09172025.Rds")
+
+#dateDF_orig <- readRDS("./Data/Detection/Derived/date_df.Rds")
 
 dateDF <- dateDF %>% # categorical classification system for parabolic detection trend
-  rename("recentered_date" = "scaled_date") %>%
-  rename("recentered_date_squared" = "scaled_date_squared") %>%
   mutate(season = case_when(
-    ordinal_date < 128 ~ "early",
+    ordinal_date < 128 ~ "early", # Day 128 is May 7
     ordinal_date > 127 & ordinal_date < 152 ~ "peak",
     ordinal_date > 151 ~ "late"
-  )) %>%
-  mutate(ordinal_date_squared = ordinal_date^2) %>%
-  mutate(scaled_ordinal = scale(ordinal_date)) %>%
-  mutate(scaled_ordinal_squared = scaled_ordinal^2) %>%
-  select(original_date, 
-         ordinal_date, 
-         ordinal_date_squared, 
-         scaled_ordinal,
-         scaled_ordinal_squared,
-         recentered_date, 
-         recentered_date_squared,
-         season)
+  )) 
 
-dateDF <- dateDF %>%
-  mutate(scaled_recentered = scale(recentered_date)) %>%
-  mutate(scaled_recentered_squared = scale(recentered_date_squared))
+
 
 # Join
 
@@ -98,30 +85,22 @@ siteCovs <- data.frame(
 # Observation Covs
 
 obsCovs <- list(
-  scaled_ordinal = matrix(dateDF$scaled_ordinal, 
+  recentered = matrix(dateDF$recentered_date, 
                      nrow = nrow(y), 
                      ncol = ncol(y), 
                      byrow = TRUE),
-  scaled_ord_squared = matrix(dateDF$ordinal_date_squared, 
+  recentered_squared = matrix(dateDF$recentered_date_squared, 
                       nrow = nrow(y),
                       ncol = ncol(y),
                       byrow = TRUE),
-  recentered_date = matrix(dateDF$recentered_date,
+  scaled_recentered = matrix(dateDF$scaled_recentered,
                            nrow = nrow(y),
                            ncol = ncol(y),
                            byrow = TRUE),
-  recentered_date_squared = matrix(dateDF$recentered_date_squared,
+  scaled_recentered_squared = matrix(dateDF$scaled_recentered_squared,
                                    nrow = nrow(y),
                                    ncol = ncol(y),
                                    byrow = TRUE),
-  scaled_recentered = matrix(dateDF$scaled_recentered,
-                             nrow = nrow(y),
-                             ncol = ncol(y),
-                             byrow = TRUE),
-  scaled_recentered_squared = matrix(dateDF$scaled_recentered_squared,
-                                     nrow = nrow(y),
-                                     ncol = ncol(y),
-                                     byrow = TRUE),
   season = matrix(dateDF$season,
                   nrow = nrow(y),
                   ncol = ncol(y),
@@ -130,11 +109,11 @@ obsCovs <- list(
   
   
 
-umf_09112025 <- unmarkedFrameOccu(
+umf_recentered_scaled_dates_09172025 <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_09112025, file = "./Data/UMFs/umf_09112025.Rds")
+#saveRDS(umf_recentered_scaled_dates_09172025, file = "./Data/UMFs/umf_recentered_scaled_dates_09172025.Rds")
 
