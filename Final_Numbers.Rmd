@@ -1,0 +1,133 @@
+---
+title: "Final_Numbers"
+author: "Annie Kellner"
+date: "2025-09-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r load-libraries, message=FALSE, warning=FALSE, include=FALSE}
+
+library(tidyverse)
+library(unmarked)
+library(MuMIn)
+library(sf)
+library(tmap)
+library(tmaptools)
+library(viridisLite)
+
+```
+
+```{r load-data}
+
+umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_recentered_scaled_dates_09172025.Rds")
+
+df <- readRDS("~/Repos/MGS/Data/finalDF_2camsdeleted_20250917.Rds")
+
+```
+
+## Model 1: Intercept-Only
+
+```{r intercept-only, warning=FALSE}
+
+m1 <- occu(~ 1 ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 2: Date (Intercept on Occupancy)
+
+```{r Date, warning=FALSE}
+
+m2 <- occu(~ scaled_recentered + scaled_recentered_squared ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 3: Season Only
+
+```{r Season, warning=FALSE}
+
+m3 <- occu(~ season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+## Model 4: Date + Season
+
+```{r time-season, warning=FALSE}
+
+m4 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 5: Distance to Stream
+
+
+```{r Distance, warning=FALSE}
+
+m5 <- occu(~ 1 ~ Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 6: Date + Distance to Stream
+
+```{r Date-Distance}
+
+m6 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Dist_Scaled,
+           data = umf, 
+           linkPsi = "logit")
+
+
+```
+
+
+## Model 7: Season + Distance to Stream 
+
+```{r season-distance, warning=FALSE}
+
+m7 <- occu(~ season ~ Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Model 8: 
+
+```{r date-season-distance}
+
+m8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled)
+
+```
+
+
+```{r }
+
+model_list <- list(
+  "Intercept-Only" = m1,
+  "Date (D)" = m2,
+  "Season (D)" = m3,
+  "Date + Season (D)" = m4,
+  "Distance to Stream (O)" = m5,
+  "Date + Distance to Stream (D+O)" = m6,
+  "Season + Distance to Stream (D+O)" = m7,
+  "Date + Season + Distance to Stream (D+O)" = m8
+)
+
+```
+
