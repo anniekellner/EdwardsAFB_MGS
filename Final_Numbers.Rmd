@@ -109,12 +109,16 @@ m7 <- occu(~ season ~ Dist_Scaled,
 
 ## Model 8: 
 
-```{r date-season-distance}
+```{r date-season-distance, warning=FALSE}
 
-m8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled)
+m8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
 
 ```
 
+
+## AIC Analysis
 
 ```{r }
 
@@ -128,6 +132,117 @@ model_list <- list(
   "Season + Distance to Stream (D+O)" = m7,
   "Date + Season + Distance to Stream (D+O)" = m8
 )
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+
+```
+
+```{r top-model-probabilities, warning=FALSE}
+
+# Get predictions without appendData to avoid row mismatch
+
+occuProbs <- predict(m8, type = "state", na.rm = TRUE)
+detProbs <- predict(m8, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits = 3), "\n")
+
+```
+
+
+## Interactive Map
+
+```{r prep-data-for-map,, message=FALSE}
+
+## Load and prep data
+
+# Spatial Data
+
+streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # river shp
+
+finalDF_ll <- df %>%
+  select(Camera_Name, Assigned_Longitude, Assigned_Latitude)
+
+
+# Site Info and Predictions
+
+site_info <- m8@data@siteCovs
+
+site_info <- site_info %>%
+  filter(!(Camera_Name == "AFRL-NW-05" | 
+              Camera_Name == "HQA-38-03")) # 2 cameras without data
+
+occuProbsDF <- data.frame(
+  site_info,
+  OccuProb_Estimate = occuProbs$Predicted,
+  SE = occuProbs$SE,
+  CI_Lower = occuProbs$lower,
+  CI_Upper = occuProbs$upper
+   )
+
+occuProbsDF <- left_join(occuProbsDF, finalDF_ll)
+
+occuProbsDF <- occuProbsDF %>% # to export to Cole for report
+  select(Camera_Name, Assigned_Longitude, Assigned_Latitude, OccuProb_Estimate, SE, CI_Lower, CI_Upper, Dist_to_Stream) %>%
+  mutate(across(where(is.numeric), ~ round(., 3)))
+
+write.csv(occuProbsDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Outputs/Occupancy_Results_20250918.csv", row.names = FALSE)
+
+```
+
+
+```{r}
+
+occuSF <- st_as_sf(occuProbsDF, coords = c("Assigned_Longitude", "Assigned_Latitude"), crs = "EPSG:4326") # create SF object
+
+occUTM <- st_transform(occuSF, st_crs(streams)) # project to UTM 11N
+
+
+# Map
+
+tmap_mode('view')
+
+occuMap <- tm_shape(streams) + 
+  tm_lines(col = "#3D5B9F") +
+tm_shape(occUTM) + 
+  tm_symbols(fill = "OccuProb_Estimate",
+             size = 0.5,
+             popup.vars = c("Camera Name" = "Camera_Name",
+                            "Occupancy Probability" = "OccuProb_Estimate",
+                            "Distance to Stream" = "Dist_to_Stream" 
+                            ),
+             fill.scale = tm_scale_continuous(values = "viridis"),
+             fill.legend = tm_legend(title = "Occupancy Probability", reverse = TRUE)) #+
+  #tm_layout(legend.reverse = TRUE) 
+
+
+tmap_save(occuMap, filename = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/mgs_occupancy_map.html")
+
+st_write(occUTM, "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Outputs/Occupancy_estimates_MGS_20250917.shp")
+
+
+
 
 ```
 

@@ -33,6 +33,8 @@ finalDF <- finalDF %>%
   filter(!(Camera_Name == "AFRL-NW-05" | 
               Camera_Name == "HQA-38-03")) # 2 cameras without data
 
+#saveRDS(finalDF, file = "./Data/finalDF_2camsdeleted_20250917.Rds")
+
 # Check if umf needs to be recreated with filtered data
 # If umf was created with the full dataset, you may need to recreate it
 # with the filtered finalDF to ensure consistency
@@ -418,7 +420,7 @@ ggplot(counts_long, aes(x = Date, y = Total_Detections)) +
 
 streams <- st_read("./Data/Spatial/Habitat/Water_features/WaterFeature_L.shp") # river shp
 
-finalDF_ll <- finalDF %>%
+finalDF_ll <- df %>%
   select(Camera_Name, Assigned_Longitude, Assigned_Latitude)
 
 
