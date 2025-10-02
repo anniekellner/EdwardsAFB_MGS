@@ -21,7 +21,7 @@ envCams <- envCams %>%
          `Trap Name`, 
          Assigned_Longitude, 
          Assigned_Latitude,
-         #Raster_Habitat_Class,
+         Raster_Habitat_Class,
          #shp_Habitat_Class,
          Dist_to_Stream)
 
@@ -37,7 +37,6 @@ dateDF <- dateDF %>% # categorical classification system for parabolic detection
     ordinal_date > 127 & ordinal_date < 152 ~ "peak",
     ordinal_date > 151 ~ "late"
   )) 
-
 
 
 # Join
@@ -70,29 +69,22 @@ y <- adults_only_ind_cams[,2:111]
 siteCovs <- data.frame(
   Dist_to_Stream = as.numeric(adults_only_ind_cams$Dist_to_Stream), # included for mapping
   Dist_Scaled = scDist, # scaled data used for model
-  Camera_Name = adults_only_ind_cams$Camera_Name # for ensuring camera-dist association
+  Camera_Name = adults_only_ind_cams$Camera_Name, # for ensuring camera-dist association
+  Habitat = adults_only_ind_cams$Raster_Habitat_Class
 )
-
-#obsCovs <- list(
-  #scaled_ordinal = dateDF[,"scaled_ordinal"],
-  #scaled_ordinal_sq = dateDF[,"scaled_ordinal_squared"],
-  #recentered_date = dateDF[,"recentered_date"],
-  #recentered_date_squared = dateDF[,"recentered_date_squared"])
-
-
 
 
 # Observation Covs
 
 obsCovs <- list(
-  recentered = matrix(dateDF$recentered_date, 
-                     nrow = nrow(y), 
-                     ncol = ncol(y), 
-                     byrow = TRUE),
-  recentered_squared = matrix(dateDF$recentered_date_squared, 
-                      nrow = nrow(y),
-                      ncol = ncol(y),
-                      byrow = TRUE),
+  #recentered = matrix(dateDF$recentered_date, 
+                     #nrow = nrow(y), 
+                     #ncol = ncol(y), 
+                     #byrow = TRUE),
+  #recentered_squared = matrix(dateDF$recentered_date_squared, 
+                      #nrow = nrow(y),
+                      #ncol = ncol(y),
+                      #byrow = TRUE),
   scaled_recentered = matrix(dateDF$scaled_recentered,
                            nrow = nrow(y),
                            ncol = ncol(y),
@@ -109,11 +101,11 @@ obsCovs <- list(
   
   
 
-umf_recentered_scaled_dates_09172025 <- unmarkedFrameOccu(
+umf_FINAL_20251002 <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_recentered_scaled_dates_09172025, file = "./Data/UMFs/umf_recentered_scaled_dates_09172025.Rds")
+#saveRDS(umf_FINAL_20251002, file = "./Data/UMFs/umf_FINAL_20251002.Rds")
 
