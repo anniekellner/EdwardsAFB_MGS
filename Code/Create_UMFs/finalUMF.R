@@ -75,13 +75,19 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
   rename_with(~paste0(., "/2024"), 2:111)
 
 
-##    --    SCALE DISTANCE TO STREAM    --    ##
-
-# Scale Distance
+# Scale Distance to Stream
 
 scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
 
 adults_only_ind_cams$DistScaled <- scDist
+
+# Remove inoperable cameras
+
+adults_only_ind_cams <- adults_only_ind_cams %>%
+  filter(!(Camera_Name == "AFRL-NW-05" | 
+             Camera_Name == "HQA-38-03"))
+
+#saveRDS(adults_only_ind_cams, file = "./Data/finalDF_habitat_camsDeleted_20251002.Rds")
 
 
 ##    --    CREATE FINAL UMF    --    ##
