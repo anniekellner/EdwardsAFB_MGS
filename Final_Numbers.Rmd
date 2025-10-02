@@ -23,11 +23,15 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_recentered_scaled_dates_09172025.Rds")
+umf <- umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251002.Rds")
 
 df <- readRDS("~/Repos/MGS/Data/finalDF_2camsdeleted_20250917.Rds")
 
 ```
+
+
+### DETECTION AIC
+
 
 ## Model 1: Intercept-Only
 
@@ -39,37 +43,114 @@ m1 <- occu(~ 1 ~ 1,
 
 ```
 
+## Model 2: Linear Date
 
-## Model 2: Date (Intercept on Occupancy)
+```{r D-linear, warning=FALSE}
 
-```{r Date, warning=FALSE}
-
-m2 <- occu(~ scaled_recentered + scaled_recentered_squared ~ 1,
+Dm2 <- occu(~ scaled_recentered ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 3: Season Only
+## Model 3: Quadratic Date
 
-```{r Season, warning=FALSE}
+```{r D-quadratic, warning=FALSE}
 
-m3 <- occu(~ season ~ 1,
+Dm3 <- occu(~ scaled_recentered + scaled_recentered_squared ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
 
-## Model 4: Date + Season
 
-```{r time-season, warning=FALSE}
+## Model 4: Season Only
 
-m4 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ 1,
+```{r D-Season, warning=FALSE}
+
+Dm4 <- occu(~ season ~ 1,
            data = umf,
            linkPsi = "logit")
 
 ```
+
+## Model 5: Linear Date + Season
+
+```{r D-linear-season, warning=FALSE}
+
+Dm5 <- occu(~ scaled_recentered + season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+
+## Quadratic + Season 
+
+```{r D-quadratic-season, warning=FALSE}
+
+Dm6 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ 1,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+*AIC TABLE - DETECTION*
+
+```{r D-AIC}
+
+model_list <- list(
+  "Intercept-Only" = m1,
+  "Linear Date" = Dm2,
+  "Quadratic Date" = Dm3,
+  "Season" = Dm4,
+  "Linear Date + Season" = Dm5,
+  "Quadratic Date + Season" = Dm6
+)
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+
+```
+
+
+### OCCUPANCY AIC
+
+## Model 2: all Habitat
+
+```{r all-habitat}
+
+Om2 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Habitat,
+            data = umf,
+            linkPsi = "logit")
+
+```
+
+## Model 3: Joshua Tree
+
+```{r}
+
+```
+
+
 
 
 ## Model 5: Distance to Stream
