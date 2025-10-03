@@ -9,54 +9,22 @@
 library(tidyverse)
 library(unmarked)
 
+##    ----    LOAD DATA    ----    ##
 
-##    ----    LOAD AND PREP DATA    ----    ##
+## Dataframes: envCovs (all cams) & adultsOnly detection DF
 
-envCams <- readRDS("./Data/Spatial/camCoords_withEnv_05262025.Rds") # dated DF has Camera_Name instead of 'Camera Trap Name'
+envCams_all <- readRDS("~/Repos/MGS/Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
 
-envCams <- envCams %>%
-  select(Camera_Name, 
-         `Study Site`, 
-         `Trap Name`, 
-         Assigned_Longitude, 
-         Assigned_Latitude,
-         #Raster_Habitat_Class,
-         shp_Habitat_Class,
-         Dist_to_Stream)
+adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
-#saveRDS(envCams, file = "./Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
-
-adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds") 
-
-dateDF <- readRDS("./Data/Detection/Derived/finalDateDF_20251002.Rds") # save date DF with Season variable
-
-# Join Joshua Tree Woodland and Desert Scrub
-
-JTree <- JTree %>%
-  rename(JTree = Raster_Habitat_Class) %>%
-  select(Camera_Name, JTree) 
-
-scrub <- scrub %>%
-  rename(Desert_Scrub = Raster_Habitat_Class) %>%
-  select(Camera_Name, Desert_Scrub)
+dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/finalDateDF_20251002.Rds")
 
 
-# Join Jtree and Scrub variables with envCovs DF
-
-envCams <- envCams %>%
-  left_join(JTree) %>%
-  left_join(scrub)
-
-envCams <- envCams %>%
-  mutate(JTree = ifelse(JTree == "Joshua Tree Woodland", 1, 0)) %>%
-  mutate(Desert_Scrub = ifelse(Desert_Scrub == "Desert Scrub", 1, 0))
-
-
-##    ---   JOIN WITH DETECTION DATA    ---   ##
+##    --    INDEPENDENT CAMERAS ONLY    --    ##
 
 
 adults_only_ind_cams <- adultsOnly %>%
-  left_join(envCams, by = "Camera_Name")
+  left_join(envCams_all, by = "Camera_Name")
 
 # Rename columns to get dates
 
@@ -64,19 +32,36 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
   rename_with(~paste0(., "/2024"), 2:111)
 
 
-# Scale Distance to Stream
+##    --    RECLASSIFY HABITAT    --    ##
+
+# using LandCover_A shapefile instead of Raster image
+
+# Desert Scrub
+
+adults_only_ind_cams <- adults_only_ind_cams %>%
+  mutate(Desert_Scrub = ifelse(str_detect(shp_Habitat_Class, "Scrub"), 1, 0)) 
+
+# Joshua Tree Woodland
+
+adults_only_ind_cams <- adults_only_ind_cams %>%
+  mutate(JoshTree = ifelse(shp_Habitat_Class == "joshuaTreeWoodland", 1, 0)) 
+
+
+##    --    ADD SCALED DISTANCE VARIABLE    --    ##
 
 scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
 
 adults_only_ind_cams$DistScaled <- scDist
 
-# Remove inoperable cameras
+
+##    --    REMOVE INOPERABLE CAMERAS   --    ##
 
 adults_only_ind_cams <- adults_only_ind_cams %>%
   filter(!(Camera_Name == "AFRL-NW-05" | 
              Camera_Name == "HQA-38-03"))
 
-#saveRDS(adults_only_ind_cams, file = "./Data/finalDF_habitat_camsDeleted_20251002.Rds")
+#saveRDS(adults_only_ind_cams, file = "./Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
+
 
 
 ##    --    CREATE FINAL UMF    --    ##
@@ -93,8 +78,8 @@ siteCovs <- data.frame(
   Dist_to_Stream = as.numeric(adults_only_ind_cams$Dist_to_Stream), # included for mapping
   Dist_Scaled = adults_only_ind_cams$DistScaled,
   Camera_Name = adults_only_ind_cams$Camera_Name, # for ensuring camera-dist association
-  Habitat = adults_only_ind_cams$Raster_Habitat_Class,
-  JoshTree = adults_only_ind_cams$JTree,
+  Habitat = adults_only_ind_cams$shp_Habitat_Class,
+  JoshTree = adults_only_ind_cams$JoshTree,
   DesertScrub = adults_only_ind_cams$Desert_Scrub
 )
 
@@ -116,12 +101,12 @@ obsCovs <- list(
                   byrow = TRUE))
 
 
+##    --    FINAL UMF   --    ##
 
-
-umf_FINAL_20251002 <- unmarkedFrameOccu(
+umf_FINAL_20251003 <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_FINAL_20251002, file = "./Data/UMFs/umf_FINAL_20251002.Rds")
+#saveRDS(umf_FINAL_20251003, file = "./Data/UMFs/umf_FINAL_20251003.Rds")

@@ -8,38 +8,19 @@
 library(tidyverse)
 library(unmarked)
 
-##    ----    LOAD AND PREP DATA    ----    ##
+##    ----    LOAD DATA    ----    ##
 
-## Dataframes: envCovs & adultsOnly detection DF
+## Dataframes: envCovs (all cams) & adultsOnly detection DF
 
-envCams <- readRDS("./Data/Spatial/camCoords_withEnv.Rds")
-
-envCams <- envCams %>%
-  rename("Camera_Name" = `Camera Trap Name`) %>%
-  select(Camera_Name, 
-         `Study Site`, 
-         `Trap Name`, 
-         Assigned_Longitude, 
-         Assigned_Latitude,
-         Raster_Habitat_Class,
-         #shp_Habitat_Class,
-         Dist_to_Stream)
+envCams_all <- readRDS("~/Repos/MGS/Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
 
 adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
 dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/dateDF_recentered_scaled_09172025.Rds")
 
-#dateDF_orig <- readRDS("./Data/Detection/Derived/date_df.Rds")
 
-dateDF <- dateDF %>% # categorical classification system for parabolic detection trend
-  mutate(season = case_when(
-    ordinal_date < 128 ~ "early", # Day 128 is May 7
-    ordinal_date > 127 & ordinal_date < 152 ~ "peak",
-    ordinal_date > 151 ~ "late"
-  )) 
+##    --    INDEPENDENT CAMERAS ONLY    --    ##
 
-
-# Join
 
 adults_only_ind_cams <- adultsOnly %>%
   left_join(envCams, by = "Camera_Name")
@@ -50,7 +31,22 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
   rename_with(~paste0(., "/2024"), 2:111)
 
 
-# Scale Distance
+##    --    RECLASSIFY HABITAT    --    ##
+
+# using LandCover_A shapefile instead of Raster image
+
+# Desert Scrub
+
+adults_only_ind_cams <- adults_only_ind_cams %>%
+  mutate(Desert_Scrub = ifelse(str_detect(shp_Habitat_Class, "Scrub"), 1, 0)) 
+
+# Joshua Tree Woodland
+
+adults_only_ind_cams <- adults_only_ind_cams %>%
+  mutate(JoshTree = ifelse(shp_Habitat_Class == "joshuaTreeWoodland", 1, 0)) 
+
+
+##    --    ADD SCALED DISTANCE VARIABLE    --    ##
 
 scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
 
