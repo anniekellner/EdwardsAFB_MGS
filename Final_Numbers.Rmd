@@ -23,9 +23,9 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251002.Rds")
+umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251002.Rds")
 
-df <- readRDS("~/Repos/MGS/Data/finalDF_habitat_camsDeleted_20251002.Rds")
+df <- readRDS("~/Repos/MGS/Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
 
 ```
 
