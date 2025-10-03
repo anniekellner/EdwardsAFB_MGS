@@ -25,7 +25,7 @@ library(viridisLite)
 
 umf <- umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251002.Rds")
 
-df <- readRDS("~/Repos/MGS/Data/finalDF_2camsdeleted_20250917.Rds")
+df <- readRDS("~/Repos/MGS/Data/finalDF_habitat_camsDeleted_20251002.Rds")
 
 ```
 
@@ -134,6 +134,8 @@ model_comparison
 
 ### OCCUPANCY AIC
 
+# Model 1 is Dm6 from detection AIC (Detection Covs with Intercept on Occupancy)
+
 ## Model 2: all Habitat
 
 ```{r all-habitat}
@@ -148,9 +150,21 @@ Om2 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Habitat,
 
 ```{r}
 
+Om3 <- occu(~scaled_recentered + scaled_recentered_squared + season ~JoshTree,
+            data = umf,
+            linkPsi = "logit")
+
 ```
 
+## Model 4: Desert Scrub
 
+```{r scrub, warning=FALSE}
+
+Om4 <- occu(~scaled_recentered + scaled_recentered_squared + season ~DesertScrub,
+            data = umf,
+            linkPsi = "logit")
+
+```
 
 
 ## Model 5: Distance to Stream
@@ -158,18 +172,18 @@ Om2 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Habitat,
 
 ```{r Distance, warning=FALSE}
 
-m5 <- occu(~ 1 ~ Dist_Scaled,
+Om5 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Dist_Scaled,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 6: Date + Distance to Stream
+## Model 6: Habitat + Distance to Stream
 
-```{r Date-Distance}
+```{r Habitat-Distance, warning=FALSE}
 
-m6 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Dist_Scaled,
+Om6 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Habitat + Dist_Scaled,
            data = umf, 
            linkPsi = "logit")
 
@@ -177,22 +191,22 @@ m6 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Dist_Scaled,
 ```
 
 
-## Model 7: Season + Distance to Stream 
+## Model 7: Joshua Tree + Distance to Stream 
 
-```{r season-distance, warning=FALSE}
+```{r JTree-Distance, warning=FALSE}
 
-m7 <- occu(~ season ~ Dist_Scaled,
+Om7 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Dist_Scaled + JoshTree,
            data = umf,
            linkPsi = "logit")
 
 ```
 
 
-## Model 8: 
+## Model 8: Desert Scrub + Distance to Stream
 
 ```{r date-season-distance, warning=FALSE}
 
-m8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled,
+Om8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled + DesertScrub,
            data = umf,
            linkPsi = "logit")
 
@@ -204,14 +218,14 @@ m8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scale
 ```{r }
 
 model_list <- list(
-  "Intercept-Only" = m1,
-  "Date (D)" = m2,
-  "Season (D)" = m3,
-  "Date + Season (D)" = m4,
-  "Distance to Stream (O)" = m5,
-  "Date + Distance to Stream (D+O)" = m6,
-  "Season + Distance to Stream (D+O)" = m7,
-  "Date + Season + Distance to Stream (D+O)" = m8
+  "Detection Covs Only" = Dm6, # from detection model set
+  "All Habitat" = Om2,
+  "Joshua Tree" = Om3,
+  "Desert Scrub" = Om4,
+  "Distance to Stream" = Om5,
+  "All Habitat + Distance to Stream" = Om6,
+  "Joshua Tree + Distance to Stream" = Om7,
+  "Desert Scrub + Distance to Stream" = Om8
 )
 
 # Calculate AICc for each model
