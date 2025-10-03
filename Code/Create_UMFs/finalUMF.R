@@ -12,34 +12,23 @@ library(unmarked)
 
 ##    ----    LOAD AND PREP DATA    ----    ##
 
-envCams <- readRDS("./Data/Spatial/camCoords_withEnv.Rds")
+envCams <- readRDS("./Data/Spatial/camCoords_withEnv_05262025.Rds") # dated DF has Camera_Name instead of 'Camera Trap Name'
 
 envCams <- envCams %>%
-  rename("Camera_Name" = `Camera Trap Name`) %>%
   select(Camera_Name, 
          `Study Site`, 
          `Trap Name`, 
          Assigned_Longitude, 
          Assigned_Latitude,
-         Raster_Habitat_Class,
-         #shp_Habitat_Class,
+         #Raster_Habitat_Class,
+         shp_Habitat_Class,
          Dist_to_Stream)
 
-JTree <- readRDS("~/Repos/MGS/Data/Covariates/indCams_adultsOnly_JTree.Rds")
-scrub <- readRDS("~/Repos/MGS/Data/Covariates/indCams_adultsOnly_DesertScrub.Rds")
+#saveRDS(envCams, file = "./Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
 
 adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds") 
 
-dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/dateDF_recentered_scaled_09172025.Rds")
-
-dateDF <- dateDF %>% # categorical classification system for parabolic detection trend
-  mutate(season = case_when(
-    ordinal_date < 128 ~ "early", # Day 128 is May 7
-    ordinal_date > 127 & ordinal_date < 152 ~ "peak",
-    ordinal_date > 151 ~ "late"
-  )) 
-
-#saveRDS(dateDF, file = "./Data/Detection/Derived/finalDateDF_20251002.Rds") # save date DF with Season variable
+dateDF <- readRDS("./Data/Detection/Derived/finalDateDF_20251002.Rds") # save date DF with Season variable
 
 # Join Joshua Tree Woodland and Desert Scrub
 
