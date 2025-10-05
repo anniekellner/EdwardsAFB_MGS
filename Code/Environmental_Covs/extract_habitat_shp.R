@@ -27,7 +27,22 @@ st_crs(hab) # in UTM 11N
 
 # Cameras
 
-camCoords <- readRDS("./Data/Spatial/camCoords.Rds")
+camCoords <- readRDS("./Data/Spatial/camCoords.Rds") %>%
+  rename(Camera_Name = `Camera Trap Name`) 
+
+camCoords <- camCoords %>%
+  select(Camera_Name, Assigned_Latitude, Assigned_Longitude)
+
+indCams <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds") # independent cameras only
+
+indCams <- indCams$Camera_Name
+
+# Filter camCoords to only include independent cameras
+
+camCoords <- camCoords[camCoords$Camera_Name %in% indCams, ]
+
+camCoords <- camCoords[!duplicated(camCoords$Camera_Name), ] # remove duplicates
+
 
 # Make DF into spatial object
 
@@ -55,7 +70,8 @@ camCoordsBuff <- st_buffer(camCoordsUTM, dist = 150)
 
 hab_data <- st_intersection(camCoordsBuff, hab)
 
-# Calculate majority
+
+## Calculate majority
 
 majority_hab <- hab_data %>%
   group_by(Camera.Trap.Name) %>%
@@ -64,5 +80,49 @@ majority_hab <- hab_data %>%
 
 # Save file
 
-majority_hab <- st_drop_geometry(majority_hab) # save as dataframe, not spatial object
+#majority_hab <- st_drop_geometry(majority_hab) # save as dataframe, not spatial object
 #saveRDS(majority_hab, file = "./Data/Spatial/Habitat/Derived/shp_habitat.Rds")
+
+
+
+## Calculate proportions
+
+hab_data$area <- st_area(hab_data)
+
+habDF <- st_drop_geometry(hab_data) # Convert to regular data frame for calculations
+
+# Calculate total area per camera buffer
+
+buffer_totals <- habDF %>%
+  group_by(Camera_Name) %>%
+  summarise(total_area = sum(area), .groups = "drop")
+
+habPercent <- habDF %>%
+  group_by(Camera_Name, VEGETATION) %>%
+  summarise(habitat_area = sum(area), .groups = "drop") %>%
+  left_join(buffer_totals, by = "Camera_Name") %>%
+  mutate(
+    percentage = (habitat_area / total_area) * 100
+  ) %>%
+  select(Camera_Name, VEGETATION, percentage)
+
+habPercent <- habPercent %>%
+  filter(!VEGETATION %in% c("playaClaypan", "mesquiteWoodland")) %>%
+  mutate(percentage = as.numeric(percentage))
+
+# Pivot wider so veg types become columns
+
+habDF <- habPercent %>%
+  select(Camera_Name, VEGETATION, percentage) %>%
+  pivot_wider(
+    names_from = VEGETATION,
+    values_from = percentage,
+    values_fill = 0  # Fill missing combinations with 0
+  ) 
+
+#saveRDS(habDF, file = "./Data/Covariates/habitat_percentages.Rds")
+
+
+
+
+
