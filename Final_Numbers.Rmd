@@ -217,8 +217,153 @@ model_comparison
 ```
 
 
+## TOP MODEL ESTIMATES
+
+# Distance to stream
+
+```{r top-model-probabilities, warning=FALSE}
+
+# Get predictions without appendData to avoid row mismatch
+
+occuProbs_top <- predict(h5, type = "state", na.rm = TRUE)
+detProbs_top <- predict(h5, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs_top$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs_top$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs_top$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs_top$Predicted), digits = 3), "\n")
+
+```
 
 
+
+```{r estimates-distance}
+
+occuProbs <- predict(h7, type = "state", na.rm = TRUE)
+detProbs <- predict(h7, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits = 3), "\n")
+
+
+```
+
+
+```{r camera-by-camera-model-comparison}
+
+dfLL <- df %>%
+  select(Camera_Name, Assigned_Longitude, Assigned_Latitude)
+
+site_info_topModel <- h5@data@siteCovs
+
+occuProbsDF_topModel <- data.frame(
+  site_info_topModel,
+  OccuProb_Estimate = occuProbs$Predicted,
+  SE = occuProbs$SE,
+  CI_Lower = occuProbs$lower,
+  CI_Upper = occuProbs$upper
+   )
+
+occuProbsDF_topModel <- left_join(occuProbsDF_topModel, dfLL) 
+
+occuProbsDF_topModel <- occuProbsDF_topModel %>% # to export to Cole for report
+  select(Camera_Name, OccuProb_Estimate, SE, CI_Lower, CI_Upper)
+
+```
+
+```{r occuProbs-model2}
+
+occuProbs_model2 <- predict(h7, type = "state", na.rm = TRUE)
+
+site_info_model2 <- h7@data@siteCovs
+
+occuProbsDF_model2 <- data.frame(
+  site_info_model2,
+  estimate_model2 = occuProbs_model2$Predicted,
+  SE_model2 = occuProbs_model2$SE,
+  CIlower_model2 = occuProbs_model2$lower,
+  CIupper_model2 = occuProbs_model2$upper)
+
+occuProbsDF_model2 <- left_join(occuProbsDF_model2, dfLL)
+
+occuProbsDF_model2 <- occuProbsDF_model2 %>% 
+  select(Camera_Name, estimate_model2, SE_model2, CIlower_model2, CIupper_model2)
+  
+```
+
+```{r occuProbs-model3}
+
+occuProbs_model3 <- predict(h8, type = "state", na.rm = TRUE)
+
+site_info_model3 <- h8@data@siteCovs
+
+occuProbsDF_model3 <- data.frame(
+  site_info_model3,
+  estimate_model3 = occuProbs_model3$Predicted,
+  SE_model3 = occuProbs_model3$SE,
+  CIlower_model3 = occuProbs_model3$lower,
+  CIupper_model3 = occuProbs_model3$upper)
+
+occuProbsDF_model3 <- left_join(occuProbsDF_model3, dfLL)
+
+occuProbsDF_model3 <- occuProbsDF_model3 %>% 
+  select(Camera_Name, estimate_model3, SE_model3, CIlower_model3, CIupper_model3)
+
+
+```
+
+
+```{r}
+
+occuProbs_model4 <- predict(h9, type = "state", na.rm = TRUE)
+
+site_info_model4 <- h9@data@siteCovs
+
+occuProbsDF_model4 <- data.frame(
+  site_info_model4,
+  estimate_model4 = occuProbs_model4$Predicted,
+  SE_model4 = occuProbs_model4$SE,
+  CIlower_model4 = occuProbs_model4$lower,
+  CIupper_model4 = occuProbs_model4$upper)
+
+occuProbsDF_model4 <- left_join(occuProbsDF_model4, dfLL)
+
+occuProbsDF_model4 <- occuProbsDF_model4 %>% 
+  select(Camera_Name, estimate_model4, SE_model4, CIlower_model4, CIupper_model4)
+
+
+```
+
+```{r differences}
+
+occuProbs_model2_diff <- occuProbsDF_model2 %>%
+  select(Camera_Name, estimate_model2)
+
+occuProbs_model3_diff <- occuProbsDF_model3 %>%
+  select(Camera_Name, estimate_model3)
+
+occuProbs_model4_diff <- occuProbsDF_model4 %>%
+  select(Camera_Name, estimate_model4)
+
+diffDF <- left_join(occuProbsDF_topModel, occuProbs_model2_diff) %>%
+  left_join(occuProbs_model3_diff) %>%
+  left_join(occuProbs_model4_diff) 
+
+diffDF <- diffDF %>%
+  mutate(model2_Diff = OccuProb_Estimate - estimate_model2) %>%
+  mutate(model3_Diff = OccuProb_Estimate - estimate_model3) %>%
+  mutate(model4_Diff= OccuProb_Estimate - estimate_model4)
+
+diffDF <- diffDF %>%
+  select(Camera_Name, OccuProb_Estimate, SE, CI_Lower, CI_Upper, model2_Diff, model3_Diff, model4_Diff)
+
+#write.csv(diffDF, file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Occupancy_Diffs.csv")
+
+```
 
 
 # Model 1 is Dm6 from detection AIC (Detection Covs with Intercept on Occupancy)
