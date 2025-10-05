@@ -1,5 +1,5 @@
 ###############################################################################
-###                   ADD HABITAT TO FINAL UMF                              ###
+###                   FINAL UMF                                              ###
 ###############################################################################
 
 # written by Annie Kellner for CEMML (Edwards AFB Mojave Ground Squirrel Occupancy)
@@ -9,58 +9,61 @@
 library(tidyverse)
 library(unmarked)
 
-##    ----    LOAD DATA    ----    ##
+##    ----    LOAD AND PREP DATA    ----    ##
 
 ## Dataframes: envCovs (all cams) & adultsOnly detection DF
 
-envCams_all <- readRDS("~/Repos/MGS/Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
+#envCams_all <- readRDS("~/Repos/MGS/Data/Covariates/envCams_allCams_shpHabitat_20251003.Rds")
 
-adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
+#adultsOnly <- readRDS("./Data/Detection/Derived/Detection_NAs_indCams_adultsOnly.Rds")
 
 dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/finalDateDF_20251002.Rds")
 
+finalDF <- readRDS("~/Repos/MGS/Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
+
+habPercentDF <- readRDS("~/Repos/MGS/Data/Covariates/habitat_percentages.Rds")
+
+# Remove Desert Scrub and Joshua Tree; replace with percentages
+
+finalDF <- finalDF %>%
+  select(-c(Desert_Scrub, JoshTree)) %>%
+  left_join(habPercentDF) %>% 
+  mutate(across(c(xeroSaltbushScrub, haloSaltbushScrub, joshuaTreeWoodland, creosoteBushScrub), 
+                ~ replace_na(., 0))) %>%
+  filter(!(Camera_Name == "AFRL-NW-05" | 
+             Camera_Name == "HQA-38-03")) # remove inoperable cameras
+
+
+################################################################################
+#########             NOT NECESSARY TO REPEAT                       ############
+################################################################################
 
 ##    --    INDEPENDENT CAMERAS ONLY    --    ##
 
 
-adults_only_ind_cams <- adultsOnly %>%
-  left_join(envCams_all, by = "Camera_Name")
+#adults_only_ind_cams <- adultsOnly %>%
+  #left_join(envCams_all, by = "Camera_Name")
 
 # Rename columns to get dates
 
-adults_only_ind_cams <- adults_only_ind_cams %>%
-  rename_with(~paste0(., "/2024"), 2:111)
-
-
-##    --    RECLASSIFY HABITAT    --    ##
-
-# using LandCover_A shapefile instead of Raster image
-
-# Desert Scrub
-
-adults_only_ind_cams <- adults_only_ind_cams %>%
-  mutate(Desert_Scrub = ifelse(str_detect(shp_Habitat_Class, "Scrub"), 1, 0)) 
-
-# Joshua Tree Woodland
-
-adults_only_ind_cams <- adults_only_ind_cams %>%
-  mutate(JoshTree = ifelse(shp_Habitat_Class == "joshuaTreeWoodland", 1, 0)) 
+#adults_only_ind_cams <- adults_only_ind_cams %>%
+  #rename_with(~paste0(., "/2024"), 2:111)
 
 
 ##    --    ADD SCALED DISTANCE VARIABLE    --    ##
 
-scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
+#scDist <- as.vector(scale(adults_only_ind_cams$Dist_to_Stream))
 
-adults_only_ind_cams$DistScaled <- scDist
+#adults_only_ind_cams$DistScaled <- scDist
 
 
 ##    --    REMOVE INOPERABLE CAMERAS   --    ##
 
-adults_only_ind_cams <- adults_only_ind_cams %>%
-  filter(!(Camera_Name == "AFRL-NW-05" | 
-             Camera_Name == "HQA-38-03"))
+#adults_only_ind_cams <- adults_only_ind_cams %>%
+  #filter(!(Camera_Name == "AFRL-NW-05" | 
+            # Camera_Name == "HQA-38-03"))
 
-#saveRDS(adults_only_ind_cams, file = "./Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
+#saveRDS(finalDF, file = "./Data/finalDF_20251005.Rds")
 
 
 
@@ -69,18 +72,20 @@ adults_only_ind_cams <- adults_only_ind_cams %>%
 
 ## Create y
 
-y <- adults_only_ind_cams[,2:111]
+y <- finalDF[,2:111]
 
 
 ## Site Covs
 
 siteCovs <- data.frame(
-  Dist_to_Stream = as.numeric(adults_only_ind_cams$Dist_to_Stream), # included for mapping
-  Dist_Scaled = adults_only_ind_cams$DistScaled,
-  Camera_Name = adults_only_ind_cams$Camera_Name, # for ensuring camera-dist association
-  Habitat = adults_only_ind_cams$shp_Habitat_Class,
-  JoshTree = adults_only_ind_cams$JoshTree,
-  DesertScrub = adults_only_ind_cams$Desert_Scrub
+  Dist_to_Stream = as.numeric(finalDF$Dist_to_Stream), # included for mapping
+  Dist_Scaled = finalDF$DistScaled,
+  Camera_Name = finalDF$Camera_Name, # for ensuring camera-dist association
+  Habitat = finalDF$shp_Habitat_Class,
+  xeroSaltbush = finalDF$xeroSaltbushScrub,
+  haloSaltbush = finalDF$haloSaltbushScrub,
+  joshuaTree = finalDF$joshuaTreeWoodland,
+  creosote = finalDF$creosoteBushScrub
 )
 
 
@@ -103,10 +108,10 @@ obsCovs <- list(
 
 ##    --    FINAL UMF   --    ##
 
-umf_FINAL_20251003 <- unmarkedFrameOccu(
+umf_FINAL_20251005 <- unmarkedFrameOccu(
   y = y,
   siteCovs = siteCovs,
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_FINAL_20251003, file = "./Data/UMFs/umf_FINAL_20251003.Rds")
+#saveRDS(umf_FINAL_20251005, file = "./Data/UMFs/umf_FINAL_20251005.Rds")
