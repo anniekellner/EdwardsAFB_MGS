@@ -23,9 +23,10 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251003.Rds")
+umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251005.Rds")
 
 df <- readRDS("~/Repos/MGS/Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
+
 
 ```
 
@@ -133,6 +134,92 @@ model_comparison
 
 
 ### OCCUPANCY AIC
+
+
+*HABITAT*
+
+```{r habitat-models}
+
+h1 <- occu(~scaled_recentered + scaled_recentered_squared + season ~joshuaTree,
+           data = umf,
+           linkPsi = "logit")
+
+h2 <- occu(~scaled_recentered + scaled_recentered_squared + season ~creosote,
+           data = umf,
+           linkPsi = "logit")
+
+h3 <- occu(~scaled_recentered + scaled_recentered_squared + season ~xeroSaltbush,
+           data = umf,
+           linkPsi = "logit")
+
+h4 <- occu(~scaled_recentered + scaled_recentered_squared + season ~haloSaltbush,
+           data = umf,
+           linkPsi = "logit")
+
+h5 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+h6 <- occu(~scaled_recentered + scaled_recentered_squared + season ~joshuaTree + Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+h7 <- occu(~scaled_recentered + scaled_recentered_squared + season ~creosote + Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+h8 <- occu(~scaled_recentered + scaled_recentered_squared + season ~xeroSaltbush + Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+h9 <- occu(~scaled_recentered + scaled_recentered_squared + season ~haloSaltbush + Dist_Scaled,
+           data = umf,
+           linkPsi = "logit")
+
+```
+
+```{r habitat-aic}
+
+model_list <- list(
+  "Detection Covs Only" = Dm6, # from detection model set
+  "Joshua Tree" = h1,
+  "Creosote" = h2,
+  "Xerophytic" = h3,
+  "Halophytic" = h4,
+  "Distance to Stream" = h5,
+  "Joshua Tree + Distance to Stream" = h6,
+  "Creosote + Distance to Stream" = h7,
+  "Xerophytic + Distance to Stream" = h8,
+  "Halophytic + Distance to Stream" = h9
+)
+
+# Calculate AICc for each model
+
+aicc_values <- sapply(model_list, function(x) {
+  AICc(x)
+})
+
+# Create comparison table
+
+model_comparison <- data.frame(
+  Model = names(model_list),
+  AICc = aicc_values,
+  Delta_AICc = aicc_values - min(aicc_values)
+)
+
+# Sort by AICc
+
+model_comparison <- model_comparison[order(model_comparison$AICc),]
+
+model_comparison
+
+
+```
+
+
+
+
+
 
 # Model 1 is Dm6 from detection AIC (Detection Covs with Intercept on Occupancy)
 
