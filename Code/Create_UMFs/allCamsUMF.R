@@ -56,7 +56,7 @@ y <- detAll[,2:111]
 
 siteCovs <- data.frame(
   Dist_Scaled = detAll$DistScaled,
-  Camera_Name = detAll$Camera_Name # for ensuring camera-dist association
+  Site = detAll$Camera_Name # for ensuring camera-dist association
 )
 
 # Observation Covs
@@ -83,4 +83,4 @@ umf_allCams_20251008 <- unmarkedFrameOccu(
   obsCovs = obsCovs
 )
 
-#saveRDS(umf_allCams_20251008, file = "./Data/UMFs/umf_allCams_20251008.Rds")
+saveRDS(umf_allCams_20251008, file = "./Data/UMFs/umf_allCams_20251008.Rds")
