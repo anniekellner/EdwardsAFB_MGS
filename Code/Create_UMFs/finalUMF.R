@@ -81,11 +81,9 @@ siteCovs <- data.frame(
   Dist_to_Stream = as.numeric(finalDF$Dist_to_Stream), # included for mapping
   Dist_Scaled = finalDF$DistScaled,
   Camera_Name = finalDF$Camera_Name, # for ensuring camera-dist association
-  Habitat = finalDF$shp_Habitat_Class,
-  xeroSaltbush = finalDF$xeroSaltbushScrub,
-  haloSaltbush = finalDF$haloSaltbushScrub,
-  joshuaTree = finalDF$joshuaTreeWoodland,
-  creosote = finalDF$creosoteBushScrub
+  scaled_recentered = dateDF$scaled_recentered,
+  scaled_recentered_sq = dateDF$scaled_recentered_squared,
+  season = dateDF$season
 )
 
 

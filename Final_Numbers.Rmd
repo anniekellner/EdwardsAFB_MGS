@@ -23,9 +23,18 @@ library(viridisLite)
 
 ```{r load-data}
 
-umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251005.Rds")
+# Independent cameras
+
+umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251005.Rds") 
 
 df <- readRDS("~/Repos/MGS/Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
+
+
+# All cameras
+
+allCamsUMF <- readRDS("~/Repos/MGS/Data/UMFs/umf_allCams_20251008.Rds")
+
+allCamsDF <- readRDS("~/Repos/MGS/Data/allCamsDF_topModel_20251008.Rds")
 
 
 ```
@@ -253,6 +262,145 @@ cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits =
 ```
 
 
+## PLOT: DETECTION PROBABILITIES OVER TIME
+
+
+## Detection Probability Over Time
+
+```{r plot-detection-prob}
+
+# Create dataframe with detProbs and dates
+
+# Extract observation covariates (they're stored as matrices in the UMF)
+# Get all detection predictions (this returns site × date combinations)
+
+
+# Reshape into matrix: rows = sites, columns = dates
+pred_matrix <- matrix(detProbs_top$Predicted, 
+                      nrow = nrow(umf@y),
+                      ncol = ncol(umf@y),
+                      byrow = TRUE)
+
+det_probs_by_date <- colMeans(pred_matrix, na.rm = TRUE)
+
+# Create dataframe
+detProbDF <- data.frame(
+  Date = colnames(df[,2:111]),
+  Detection_Prob = det_probs_by_date,
+  season = dateDF$season
+)
+
+detProbDF$Date <- mdy(detProbDF$Date)
+
+# Reshape with byrow = TRUE instead
+pred_matrix <- matrix(all_det_preds$Predicted, 
+                      nrow = 143,
+                      ncol = 110,
+                      byrow = TRUE)  # Changed to TRUE
+
+# Now check if columns are unique
+cat("Are column 1 and column 11 identical now?\n")
+print(all(pred_matrix[, 1] == pred_matrix[, 11]))
+
+cat("Are column 1 and column 2 different?\n")
+print(!all(pred_matrix[, 1] == pred_matrix[, 2]))
+
+# Get mean detection probability across all sites for each date
+det_probs_by_date <- colMeans(pred_matrix, na.rm = TRUE)
+
+# Verify no repeating pattern
+cat("\nFirst 20 averaged detection probabilities:\n")
+print(det_probs_by_date[1:20])
+
+# Create dataframe
+detProbDF <- data.frame(
+  Date = colnames(df[,2:111]),
+  Detection_Prob = det_probs_by_date,
+  season = dateDF$season
+)
+
+detProbDF$Date <- mdy(detProbDF$Date)
+
+# Plot
+ggplot(detProbDF, aes(x = Date, y = Detection_Prob)) + 
+  geom_line(aes(color = season), size = 1) +
+  geom_point(aes(color = season), size = 1.5) +
+  scale_x_date(date_breaks = "5 days", date_labels = "%m/%d") +
+  scale_color_manual(values = c("early" = "#2C7BB6", "peak" = "#D7191C", "late" = "#FDAE61")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Date", y = "Detection Probability", color = "Season")
+
+counts <- df %>%
+  summarize(across(2:111, sum, na.rm = TRUE))
+
+counts_long <- counts %>%
+  pivot_longer(everything(),
+               names_to = "Date",
+               values_to = "Total_Detections") %>%
+  mutate(Date = mdy(Date))
+
+# Combine predicted and observed
+comparison_df <- detProbDF %>%
+  left_join(counts_long, by = "Date") %>%
+  mutate(Scaled_Detections = Total_Detections / max(Total_Detections, na.rm = TRUE))  # Scale to 0-1 for comparison
+
+# Plot both on same graph
+ggplot(comparison_df, aes(x = Date)) +
+  geom_line(aes(y = Detection_Prob, color = "Predicted"), size = 1) +
+  geom_line(aes(y = Scaled_Detections, color = "Observed (scaled)"), size = 1, linetype = "dashed") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%m/%d") +
+  scale_color_manual(values = c("Predicted" = "blue", "Observed (scaled)" = "red")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Date", y = "Probability / Scaled Counts", color = "Data Type",
+       title = "Predicted Detection Probability vs Observed Detections")
+
+```
+
+
+```{r}
+h5_timevar <- occu(~ scaled_recentered + scaled_recentered_squared + season 
+                   ~ scaled_recentered + scaled_recentered_squared + season + Dist_Scaled,
+                   data = umf,
+                   linkPsi = "logit")
+```
+
+
+
+
+
+
+
+## Actual captures over time
+
+```{r plot-captures-over-time}
+
+counts <- df %>%
+  summarize(across(2:111, su pivot_longer(everything(),
+               names_to = "Date",
+               values_to = "Total_Detections") 
+
+counts_long <- counts_long %>% mutate(Date = mdy(Date))
+
+
+# Plot Count Data
+
+ggplot(counts_long, aes(x = Date, y = Total_Detections)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = "Date",
+       y = "Number of Detections",
+       title = "Daily Detection Counts") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_breaks = "5 days",  # Show every 5 days
+               date_labels = "%m/%d")    # Format as month/day
+
+
+```
+
+
+
 ```{r camera-by-camera-model-comparison}
 
 dfLL <- df %>%
@@ -366,121 +514,7 @@ diffDF <- diffDF %>%
 ```
 
 
-# Model 1 is Dm6 from detection AIC (Detection Covs with Intercept on Occupancy)
 
-## Model 2: all Habitat
-
-```{r all-habitat}
-
-Om2 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Habitat,
-            data = umf,
-            linkPsi = "logit")
-
-```
-
-## Model 3: Joshua Tree
-
-```{r}
-
-Om3 <- occu(~scaled_recentered + scaled_recentered_squared + season ~JoshTree,
-            data = umf,
-            linkPsi = "logit")
-
-```
-
-## Model 4: Desert Scrub
-
-```{r scrub, warning=FALSE}
-
-Om4 <- occu(~scaled_recentered + scaled_recentered_squared + season ~DesertScrub,
-            data = umf,
-            linkPsi = "logit")
-
-```
-
-
-## Model 5: Distance to Stream
-
-
-```{r Distance, warning=FALSE}
-
-Om5 <- occu(~scaled_recentered + scaled_recentered_squared + season ~Dist_Scaled,
-           data = umf,
-           linkPsi = "logit")
-
-```
-
-
-## Model 6: Habitat + Distance to Stream
-
-```{r Habitat-Distance, warning=FALSE}
-
-Om6 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Habitat + Dist_Scaled,
-           data = umf, 
-           linkPsi = "logit")
-
-
-```
-
-
-## Model 7: Joshua Tree + Distance to Stream 
-
-```{r JTree-Distance, warning=FALSE}
-
-Om7 <- occu(~ scaled_recentered + scaled_recentered_squared ~ Dist_Scaled + JoshTree,
-           data = umf,
-           linkPsi = "logit")
-
-```
-
-
-## Model 8: Desert Scrub + Distance to Stream
-
-```{r date-season-distance, warning=FALSE}
-
-Om8 <- occu(~ scaled_recentered + scaled_recentered_squared + season ~ Dist_Scaled + DesertScrub,
-           data = umf,
-           linkPsi = "logit")
-
-```
-
-
-## AIC Analysis
-
-```{r }
-
-model_list <- list(
-  "Detection Covs Only" = Dm6, # from detection model set
-  "All Habitat" = Om2,
-  "Joshua Tree" = Om3,
-  "Desert Scrub" = Om4,
-  "Distance to Stream" = Om5,
-  "All Habitat + Distance to Stream" = Om6,
-  "Joshua Tree + Distance to Stream" = Om7,
-  "Desert Scrub + Distance to Stream" = Om8
-)
-
-# Calculate AICc for each model
-
-aicc_values <- sapply(model_list, function(x) {
-  AICc(x)
-})
-
-# Create comparison table
-
-model_comparison <- data.frame(
-  Model = names(model_list),
-  AICc = aicc_values,
-  Delta_AICc = aicc_values - min(aicc_values)
-)
-
-# Sort by AICc
-
-model_comparison <- model_comparison[order(model_comparison$AICc),]
-
-model_comparison
-
-```
 
 ```{r top-model-probabilities, warning=FALSE}
 
@@ -569,7 +603,44 @@ tmap_save(occuMap, filename = "C:/Users/akellner/OneDrive - Colostate/Documents/
 st_write(occUTM, "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/Outputs/Occupancy_estimates_MGS_20250917.shp")
 
 
+```
 
+
+### ALL CAMERAS COMPARISON
+
+
+```{r all-cams-top-model}
+
+all <- occu(~scaled_recentered + scaled_recentered_squared + season ~Dist_Scaled + (1|Site),
+           data = allCamsUMF,
+           linkPsi = "logit")
+```
+
+```{r all-cams-estimates}
+
+occuProbs_allCams <- predict(all, type = "state", na.rm = TRUE)
+detProbs_allCams <- predict(all, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs_allCams$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs_allCams$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs_allCams$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs_allCams$Predicted), digits = 3), "\n")
+
+
+```
+
+
+```{r ind-cams-top-model}
+
+occuProbs_top <- predict(h5, type = "state", na.rm = TRUE)
+detProbs_top <- predict(h5, type = "det")
+
+cat("Mean Occupancy Probability:", round(mean(occuProbs_top$Predicted),digits = 3), "\n") 
+cat("Range of Occupancy Probability:", round(range(occuProbs_top$Predicted), digits = 3), "\n")
+
+cat("Mean Detection Probability:", round(mean(detProbs_top$Predicted), digits = 3), "\n")
+cat("Range in Detection Probability:", round(range(detProbs_top$Predicted), digits = 3), "\n")
 
 ```
 
