@@ -29,6 +29,9 @@ umf <- readRDS("~/Repos/MGS/Data/UMFs/umf_FINAL_20251005.Rds")
 
 df <- readRDS("~/Repos/MGS/Data/finalDF_shpHabitat_camsDeleted_20251003.Rds")
 
+dateDF <- readRDS("~/Repos/MGS/Data/Detection/Derived/finalDateDF_20251002.Rds")
+
+
 
 # All cameras
 
@@ -245,6 +248,24 @@ cat("Range in Detection Probability:", round(range(detProbs_top$Predicted), digi
 
 ```
 
+```{r unscaled-estimate}
+
+# Get the scaling parameters from your data
+
+dist_mean <- mean(df$Dist_to_Stream, na.rm = TRUE)
+dist_sd <- sd(df$Dist_to_Stream, na.rm = TRUE)
+
+# Get your model coefficient (example)
+scaled_coef <- coef(h5)["psi(Dist_Scaled)"]  # Replace h5 with your actual model
+
+# Convert to unscaled coefficient
+unscaled_coef <- scaled_coef / dist_sd
+
+cat("For every 1 meter increase in distance to stream, ")
+cat("log-odds of occupancy changes by:", round(unscaled_coef, 4), "\n")
+
+```
+
 
 
 ```{r estimates-distance}
@@ -276,27 +297,42 @@ cat("Range in Detection Probability:", round(range(detProbs$Predicted), digits =
 
 
 # Reshape into matrix: rows = sites, columns = dates
-pred_matrix <- matrix(detProbs_top$Predicted, 
-                      nrow = nrow(umf@y),
-                      ncol = ncol(umf@y),
+pred_matrixUpper <- matrix(#detProbs_top$Predicted, # have to do one at a time and then combine
+                      #detProbs_top$SE,
+                      #detProbs_top$lower,
+                      detProbs_top$upper,
+                      nrow = 143,
+                      ncol = 110,
                       byrow = TRUE)
 
 det_probs_by_date <- colMeans(pred_matrix, na.rm = TRUE)
+det_probs_by_dateSE <-colMeans(pred_matrixSE, na.rm = TRUE)
+det_probs_by_dateLower <- colMeans(pred_matrixLower, na.rm = TRUE)
+det_probs_by_dateUpper <- colMeans(pred_matrixUpper, na.rm = TRUE)
+
 
 # Create dataframe
 detProbDF <- data.frame(
   Date = colnames(df[,2:111]),
   Detection_Prob = det_probs_by_date,
+  SE = det_probs_by_dateSE,
+  CI_Lower = det_probs_by_dateLower,
+  CI_Upper = det_probs_by_dateUpper,
   season = dateDF$season
 )
 
 detProbDF$Date <- mdy(detProbDF$Date)
 
+#write.csv(detProbDF, 
+          #file = "C:/Users/akellner/OneDrive - Colostate/Documents/Edwards/Mojave Ground Squirrel/detection_probs_w_SE_CI_20251013.csv")
+
 # Reshape with byrow = TRUE instead
-pred_matrix <- matrix(all_det_preds$Predicted, 
-                      nrow = 143,
-                      ncol = 110,
-                      byrow = TRUE)  # Changed to TRUE
+#pred_matrix <- matrix(all_det_preds$Predicted, 
+                      #nrow = 143,
+                      #ncol = 110,
+                      #byrow = TRUE)  # Changed to TRUE
+
+#####   CHECKS    ##############################
 
 # Now check if columns are unique
 cat("Are column 1 and column 11 identical now?\n")
